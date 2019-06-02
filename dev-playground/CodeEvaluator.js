@@ -6,7 +6,7 @@ let stub = null;
 
 
 async function evaluate(code, username, password, env) {
-	console.log('Began Evaluating', username, password);
+	console.log('Began Evaluating');
 
 	function writeEnv() {
 		return new Promise((resolve, reject) => {

@@ -116,6 +116,7 @@ class App extends Component {
 	}
 
 	async interpretJS() {
+		this.setState({results: {}});
 		let previousRuns = cookies.get('previous-runs');
 
 		if (cookies.get('code') !== undefined) {

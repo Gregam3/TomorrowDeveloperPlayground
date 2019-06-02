@@ -15,7 +15,7 @@ const fs = require('fs');
 let files = {};
 
 //TODO replace with .flatMap
-[path.join('../integrations/electricity/'), path.join('../integrations/transportation/')]
+[path.join('../tmrowapp-contrib/integrations/electricity/'), path.join('../tmrowapp-contrib/integrations/transportation/')]
 	.forEach(dir => fs.readdir(dir, (pErr, file) =>
 		file.forEach(f =>
 			fs.readFile(dir + '/' + f, {encoding: 'utf-8'},
