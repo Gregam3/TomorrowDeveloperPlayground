@@ -1,7 +1,4 @@
-const integration = import("./integration-test/integration");
-
 const evaluator = require("./CodeEvaluator");
-
 const express = require('express');
 const bodyParser = require('body-parser');
 const app = express();
@@ -10,7 +7,6 @@ const port = 3001;
 const helmet = require('helmet');
 const path = require('path');
 const fs = require('fs');
-
 
 let files = {};
 
@@ -55,5 +51,3 @@ app.post('/evaluate-code', async (req, res) => {
 	console.log('Responding\n----------------------------------------------------------------------------');
 	res.end();
 });
-
-

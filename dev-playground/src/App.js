@@ -61,13 +61,10 @@ class App extends Component {
 		envRefList: []
 	};
 
-
 	authRefs = {
 		username: React.createRef(),
 		password: React.createRef()
 	};
-
-
 
 	constructor(props) {
 		super(props);
@@ -128,6 +125,7 @@ class App extends Component {
 		}
 
 		cookies.set('code', this.state.code);
+		console.log(this.state.code);
 		cookies.set('username', this.authRefs.username.current.value);
 		cookies.set('password', this.authRefs.password.current.value);
 
