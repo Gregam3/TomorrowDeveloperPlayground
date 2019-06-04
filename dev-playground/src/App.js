@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import './App.css';
 import MonacoEditor from 'react-monaco-editor';
-import {Button, Dropdown} from 'react-bootstrap';
+import {Button, Col, Dropdown, Row} from 'react-bootstrap';
 import ReactJsonSyntaxHighlighter from 'react-json-syntax-highlighter'
 import Form from "react-bootstrap/Form";
 import {evaluateCode, getIntegrations} from "./RequestManager";
@@ -51,6 +51,11 @@ const config = {
   type: null,
 };` : cookies.get('code');
 
+const AUTH_TYPE = {
+	WEB_AUTH: 0,
+	MANUAL_AUTH: 1
+};
+
 
 class App extends Component {
 	state = {
@@ -58,12 +63,18 @@ class App extends Component {
 		results: {},
 		code: initialCode,
 		previousRuns: cookies.get('previous-runs'),
-		envRefList: []
+		envRefList: [],
+		authType: null,
+		authChoice: {
+			webviewRadio: React.createRef(),
+			manualRadio: React.createRef()
+		}
 	};
 
 	authRefs = {
 		username: React.createRef(),
-		password: React.createRef()
+		password: React.createRef(),
+		url: React.createRef(),
 	};
 
 	constructor(props) {
@@ -130,9 +141,9 @@ class App extends Component {
 		cookies.set('password', this.authRefs.password.current.value);
 
 		let results = await evaluateCode(this.state.code,
-				this.authRefs.username.current.value,
-				this.authRefs.password.current.value,
-				getEnvAsObject(this.state.envRefList));
+			this.authRefs.username.current.value,
+			this.authRefs.password.current.value,
+			getEnvAsObject(this.state.envRefList));
 
 		results.activities = processActivities(results.collect.activities);
 
@@ -163,6 +174,7 @@ class App extends Component {
 			<div className="panel-header" style={{marginLeft: '10px'}}>
 				<h1>Test Results <Button variant="secondary" style={{fontSize: '26px'}}
 				                         onClick={() => this.interpretJS()}> Run </Button></h1>
+				{this.authRadioSelect()}
 			</div>
 			<div className="panel-body">
 				{this.state.integrations ? this.integrationPanel() : ""}
@@ -173,7 +185,8 @@ class App extends Component {
 					{<ReactJsonSyntaxHighlighter obj={this.state.results.collect}/>}</div> : ""}
 				{this.state.results.disconnect ? <div><h3>Disconnect</h3>
 					{<ReactJsonSyntaxHighlighter obj={this.state.results.disconnect}/>} </div> : ""}
-				{this.state.results.config ? <div><h3>Config</h3> {<ReactJsonSyntaxHighlighter obj={this.state.results.config}/>}</div> : ""}
+				{this.state.results.config ?
+					<div><h3>Config</h3> {<ReactJsonSyntaxHighlighter obj={this.state.results.config}/>}</div> : ""}
 			</div>
 		</div>
 	}
@@ -186,17 +199,25 @@ class App extends Component {
 			</div>
 			<hr/>
 			<div className="panel-body">
-				<Form>
-					<Form.Group>
-						<Form.Label>Username</Form.Label>
-						<Form.Control placeholder="Username" ref={this.authRefs.username}/>
-					</Form.Group>
+				{this.state.authType === AUTH_TYPE.MANUAL_AUTH ?
+					<Form>
+						<Form.Group>
+							<Form.Label>Username</Form.Label>
+							<Form.Control placeholder="Username" ref={this.authRefs.username}/>
+						</Form.Group>
 
-					<Form.Group>
-						<Form.Label>Password</Form.Label>
-						<Form.Control type="password" placeholder="Password" ref={this.authRefs.password}/>
-					</Form.Group>
-				</Form>
+						<Form.Group>
+							<Form.Label>Password</Form.Label>
+							<Form.Control type="password" placeholder="Password" ref={this.authRefs.password}/>
+						</Form.Group>
+					</Form> : ""}
+				{this.state.authType === AUTH_TYPE.WEB_AUTH ?
+					<Form>
+						<Form.Group>
+							<Form.Label>Auth URL</Form.Label>
+							<Form.Control placeholder="www.google.com/oauth"/>
+						</Form.Group>
+					</Form> : ""}
 			</div>
 		</div>
 	}
@@ -259,7 +280,7 @@ class App extends Component {
 			<div className="panel-header">
 				<h1 className="title">Environment Variables &nbsp;
 					<Button onClick={() => this.addEnvInput()} size="lg" variant="secondary">Add</Button></h1>
-					Use <code>import env from './env'</code> and access items with <code>env.key</code>
+				Use <code>import env from './env'</code> and access items with <code>env.key</code>
 			</div>
 			<div className="panel-body">
 				{this.state.envRefList.map(e => <Form>
@@ -294,6 +315,34 @@ class App extends Component {
 				<p>Watt hours per day: {this.state.results.activities.wattsPerDay}</p>
 			</div>
 		</div>
+	}
+
+	authRadioSelect() {
+		return <Form>
+			<fieldset>
+				<Form.Group as={Row}>
+					<Form.Label as="legend" column sm={3}>
+						Authorisation
+					</Form.Label>
+					<Col sm={10}>
+						<Form.Check
+							type="radio"
+							label="&nbsp;&nbsp;&nbsp;&nbsp;Manual Input"
+							name="formHorizontalRadios"
+							id="formHorizontalRadios1"
+							onClick={() => this.setState({authType: AUTH_TYPE.MANUAL_AUTH})}
+						/>
+						<Form.Check
+							type="radio"
+							label="&nbsp;&nbsp;&nbsp;&nbsp;Webview Login"
+							name="formHorizontalRadios"
+							id="formHorizontalRadios2"
+							onClick={() => this.setState({authType: AUTH_TYPE.WEB_AUTH})}
+						/>
+					</Col>
+				</Form.Group>
+			</fieldset>
+		</Form>
 	}
 }
 
