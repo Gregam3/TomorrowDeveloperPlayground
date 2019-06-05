@@ -1,3 +1,5 @@
+const server = require("./server");
+
 const fs = require('fs');
 const FUN_NAMES = ["connect", "collect", "disconnect", "config"];
 
@@ -5,8 +7,13 @@ const exportCode = `\n\nexport {${FUN_NAMES.join(',')}};`;
 let stub = null;
 
 
-async function evaluate(code, username, password, env) {
-	console.log('Began Evaluating');
+const AUTH_TYPE = {
+	WEB_AUTH: 0,
+	MANUAL_AUTH: 1
+};
+
+async function evaluate(code, authDetails, env) {
+	console.log('Began Evaluating', authDetails);
 
 	function writeEnv() {
 		return new Promise((resolve, reject) => {
@@ -50,7 +57,7 @@ async function evaluate(code, username, password, env) {
 	return writeEnv().then(() =>
 		writeCode().then(() =>
 			importIntegration().then(() =>
-				assessFunctions(stub, username, password))));
+				assessFunctions(stub, authDetails))));
 }
 
 
@@ -58,21 +65,31 @@ function objectToCode(env) {
 	return '{' + Object.keys(env).map(k => k + ':"' + env[k] + '"').join(",") + '};';
 }
 
-async function assessFunctions(stub, username, password) {
-	console.log('Assessing Functions');
-	const connectResult = await stub.connect(() => {
-		return {username, password}
-	}, () => {
-	});
 
-	return await {
+async function assessFunctions(stub, authDetails) {
+	const requestLogin = authDetails.username && authDetails.password ? () => {
+		return {username: authDetails.username, password: authDetails.password}
+	}: () => {};
+
+	const requestWebView = (url, callbackUrl) => {
+		return new Promise((resolve, reject) => {
+			if (!url) reject();
+
+			server.emitOpenUrl(url);
+			resolve();
+		});
+	};
+
+	console.log('Assessing Functions');
+
+	const connectResult = await stub.connect(requestLogin, requestWebView);
+
+	server.emitResults(await {
 		connect: connectResult,
 		collect: await stub.collect(connectResult, {logWarning: (err) => console.log(err)}),
 		disconnect: await stub.disconnect(),
 		config: stub.config
-	};
+	});
 }
 
 module.exports.evaluate = evaluate;
-
-

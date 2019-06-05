@@ -13,12 +13,11 @@ export function getIntegrations() {
 		});
 }
 
-
-export function evaluateCode(code, username, password, env) {
+export function evaluateCode(code, authDetails, env) {
 	//Cannot use get with body from browser
 	return request
 		.post('http://' +window.location.hostname + ':3001/evaluate-code')
-		.send({code, username, password, env})
+		.send({code, authDetails, env})
 		.then(res => JSON.parse(res.text))
 		.catch(err => {
 			console.log(err);

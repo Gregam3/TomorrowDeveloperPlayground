@@ -7,6 +7,7 @@ const port = 3001;
 const helmet = require('helmet');
 const path = require('path');
 const fs = require('fs');
+const io = require('socket.io')(server, { pingInterval: 5000 });
 
 let files = {};
 
@@ -36,18 +37,34 @@ server.listen(port, (err) => {
 	console.log('Server Running');
 });
 
-module.exports = server;
-
 app.get('/get-integrations', (err, res) => {
 	res.status(200);
 	res.json(files);
 	res.end();
 });
 
+let socket = null;
+
+io.on('connection', (s) => {
+	console.log('New websocket connection ', s.handshake.headers.origin);
+	socket = s;
+});
+
+
 
 app.post('/evaluate-code', async (req, res) => {
 	res.status(200);
-	res.json(await evaluator.evaluate(req.body.code, req.body.username, req.body.password, req.body.env));
+	res.json(await evaluator.evaluate(req.body.code, req.body.authDetails, req.body.env));
 	console.log('Responding\n----------------------------------------------------------------------------');
 	res.end();
 });
+
+
+const emitOpenUrl = (url) =>
+	socket.emit("openUrl", url, (data) => console.log('', data));
+
+const emitResults = (results) =>
+	socket.emit("setResults", results);
+
+
+module.exports = {emitOpenUrl, emitResults};

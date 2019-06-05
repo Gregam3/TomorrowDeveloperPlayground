@@ -8,6 +8,7 @@ import {evaluateCode, getIntegrations} from "./RequestManager";
 import {Modal} from "react-bootstrap";
 import Cookies from 'universal-cookie';
 import {processActivities} from "./ActivityProcessor";
+import io from "socket.io-client";
 
 const editorOptions = {
 	selectOnLineNumbers: true,
@@ -56,8 +57,11 @@ const AUTH_TYPE = {
 	MANUAL_AUTH: 1
 };
 
+const nodePort = 3001;
 
 class App extends Component {
+	socket = io('http://' + window.location.hostname + ':' + nodePort);
+
 	state = {
 		functions: null,
 		results: {},
@@ -77,10 +81,14 @@ class App extends Component {
 		url: React.createRef(),
 	};
 
+
 	constructor(props) {
 		super(props);
 		this.populateIntegrations();
-
+		this.socket.on('openUrl',
+			(url) => window.open(url));
+		this.socket.on('setResults',
+			(results) =>this.setState({results}));
 	}
 
 	async populateIntegrations() {
@@ -135,17 +143,25 @@ class App extends Component {
 			this.setState({previousRuns});
 		}
 
-		cookies.set('code', this.state.code);
-		console.log(this.state.code);
-		cookies.set('username', this.authRefs.username.current.value);
-		cookies.set('password', this.authRefs.password.current.value);
+		let authDetails = {authType: this.state.authType};
 
-		let results = await evaluateCode(this.state.code,
-			this.authRefs.username.current.value,
-			this.authRefs.password.current.value,
+		cookies.set('code', this.state.code);
+
+		if (this.state.authType === AUTH_TYPE.MANUAL_AUTH) {
+			cookies.set('username', this.authRefs.username.current.value);
+			cookies.set('password', this.authRefs.password.current.value);
+			authDetails.username = this.authRefs.username.current.value;
+			authDetails.password = this.authRefs.password.current.value;
+		} else if (this.state.authType === AUTH_TYPE.WEB_AUTH) {
+			cookies.set('url', this.authRefs.url.current.value);
+			authDetails.url = this.authRefs.url.current.value;
+		}
+
+		let results = await evaluateCode(this.state.code, authDetails,
 			getEnvAsObject(this.state.envRefList));
 
-		results.activities = processActivities(results.collect.activities);
+		if (results.collect)
+			results.activities = processActivities(results.collect.activities);
 
 		this.setState({results});
 
@@ -178,15 +194,18 @@ class App extends Component {
 			</div>
 			<div className="panel-body">
 				{this.state.integrations ? this.integrationPanel() : ""}
-
-				{this.state.results.connect ? <div><h3>Connect</h3>
-					{<ReactJsonSyntaxHighlighter obj={this.state.results.connect}/>} </div> : ""}
-				{this.state.results.collect ? <div className="json-display"><h3>Collect</h3>
-					{<ReactJsonSyntaxHighlighter obj={this.state.results.collect}/>}</div> : ""}
-				{this.state.results.disconnect ? <div><h3>Disconnect</h3>
-					{<ReactJsonSyntaxHighlighter obj={this.state.results.disconnect}/>} </div> : ""}
-				{this.state.results.config ?
-					<div><h3>Config</h3> {<ReactJsonSyntaxHighlighter obj={this.state.results.config}/>}</div> : ""}
+				{this.state.results === "oauth" ? <h1>Waiting for OAuth</h1> :
+					<div>
+						{this.state.results.connect ? <div><h3>Connect</h3>
+							{<ReactJsonSyntaxHighlighter obj={this.state.results.connect}/>} </div> : ""}
+						{this.state.results.collect ? <div className="json-display"><h3>Collect</h3>
+							{<ReactJsonSyntaxHighlighter obj={this.state.results.collect}/>}</div> : ""}
+						{this.state.results.disconnect ? <div><h3>Disconnect</h3>
+							{<ReactJsonSyntaxHighlighter obj={this.state.results.disconnect}/>} </div> : ""}
+						{this.state.results.config ?
+							<div><h3>Config</h3> {<ReactJsonSyntaxHighlighter obj={this.state.results.config}/>}
+							</div> : ""}
+					</div>}
 			</div>
 		</div>
 	}
@@ -215,7 +234,7 @@ class App extends Component {
 					<Form>
 						<Form.Group>
 							<Form.Label>Auth URL</Form.Label>
-							<Form.Control placeholder="www.google.com/oauth"/>
+							<Form.Control placeholder="www.google.com/oauth" ref={this.authRefs.url}/>
 						</Form.Group>
 					</Form> : ""}
 			</div>
