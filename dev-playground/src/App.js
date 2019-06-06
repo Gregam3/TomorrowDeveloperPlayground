@@ -88,7 +88,10 @@ class App extends Component {
 		this.socket.on('openUrl',
 			(url) => window.open(url));
 		this.socket.on('setResults',
-			(results) =>this.setState({results}));
+			(results) => {
+				results.activities = processActivities(results.collect.activities);
+				this.setState({results});
+			});
 	}
 
 	async populateIntegrations() {
@@ -157,13 +160,7 @@ class App extends Component {
 			authDetails.url = this.authRefs.url.current.value;
 		}
 
-		let results = await evaluateCode(this.state.code, authDetails,
-			getEnvAsObject(this.state.envRefList));
-
-		if (results.collect)
-			results.activities = processActivities(results.collect.activities);
-
-		this.setState({results});
+		evaluateCode(this.state.code, authDetails, getEnvAsObject(this.state.envRefList));
 
 		function getEnvAsObject(refs) {
 			let obj = {};

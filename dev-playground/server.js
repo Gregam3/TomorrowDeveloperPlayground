@@ -51,11 +51,12 @@ io.on('connection', (s) => {
 });
 
 
-
 app.post('/evaluate-code', async (req, res) => {
 	res.status(200);
+	console.log("----------------------------------------------------------------------------" +
+		"\nRequest Start |\n---------------");
 	res.json(await evaluator.evaluate(req.body.code, req.body.authDetails, req.body.env));
-	console.log('Responding\n----------------------------------------------------------------------------');
+	console.log('Request End\n--------------------------------------------------------------------------');
 	res.end();
 });
 
@@ -67,4 +68,5 @@ const emitResults = (results) =>
 	socket.emit("setResults", results);
 
 
-module.exports = {emitOpenUrl, emitResults};
+module.exports.emitOpenUrl = emitOpenUrl;
+module.exports.emitResults = emitResults;

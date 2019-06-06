@@ -80,7 +80,7 @@ async function assessFunctions(stub, authDetails) {
 		});
 	};
 
-	console.log('Assessing Functions');
+	console.log('Assessing Functions, integration logs [');
 
 	const connectResult = await stub.connect(requestLogin, requestWebView);
 
@@ -90,6 +90,8 @@ async function assessFunctions(stub, authDetails) {
 		disconnect: await stub.disconnect(),
 		config: stub.config
 	});
+
+	console.log("]")
 }
 
 module.exports.evaluate = evaluate;
