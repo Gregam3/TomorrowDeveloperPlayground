@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import './App.css';
 import MonacoEditor from 'react-monaco-editor';
-import {Button, Col, Dropdown, Row} from 'react-bootstrap';
+import {Button, Col, Dropdown, Nav, Row} from 'react-bootstrap';
 import ReactJsonSyntaxHighlighter from 'react-json-syntax-highlighter'
 import Form from "react-bootstrap/Form";
 import {evaluateCode, getIntegrations} from "./RequestManager";
@@ -9,6 +9,9 @@ import {Modal} from "react-bootstrap";
 import Cookies from 'universal-cookie';
 import {processActivities} from "./ActivityProcessor";
 import io from "socket.io-client";
+import { Charts, ChartContainer, ChartRow, YAxis, LineChart } from "react-timeseries-charts";
+import { TimeSeries, TimeRange } from "pondjs";
+
 
 const editorOptions = {
 	selectOnLineNumbers: true,
@@ -57,6 +60,12 @@ const AUTH_TYPE = {
 	MANUAL_AUTH: 1
 };
 
+const DISPLAY_TYPE = {
+	JSON: 0,
+	GRAPH: 1,
+	AGGREGATE: 2
+};
+
 const nodePort = 3001;
 
 class App extends Component {
@@ -72,7 +81,8 @@ class App extends Component {
 		authChoice: {
 			webviewRadio: React.createRef(),
 			manualRadio: React.createRef()
-		}
+		},
+		resultsDisplay: DISPLAY_TYPE.JSON
 	};
 
 	authRefs = {
@@ -91,6 +101,7 @@ class App extends Component {
 			(results) => {
 				results.activities = processActivities(results.collect.activities);
 				this.setState({results});
+				console.log(this.state.results.activities.graphData.avg("watts"));
 			});
 	}
 
@@ -119,7 +130,6 @@ class App extends Component {
 				{this.state.integrations && this.state.integrations.view ? this.viewIntegrationModal() : ""}
 				{this.state.previousRuns ? this.codeHistoryDropdown() : ""}
 				{this.environmentPanel()}
-				{this.state.results.activities ? this.activityDisplay() : ""}
 
 				<MonacoEditor
 					height="850"
@@ -193,18 +203,53 @@ class App extends Component {
 				{this.state.integrations ? this.integrationPanel() : ""}
 				{this.state.results === "oauth" ? <h1>Waiting for OAuth</h1> :
 					<div>
-						{this.state.results.connect ? <div><h3>Connect</h3>
-							{<ReactJsonSyntaxHighlighter obj={this.state.results.connect}/>} </div> : ""}
-						{this.state.results.collect ? <div className="json-display"><h3>Collect</h3>
-							{<ReactJsonSyntaxHighlighter obj={this.state.results.collect}/>}</div> : ""}
-						{this.state.results.disconnect ? <div><h3>Disconnect</h3>
-							{<ReactJsonSyntaxHighlighter obj={this.state.results.disconnect}/>} </div> : ""}
-						{this.state.results.config ?
-							<div><h3>Config</h3> {<ReactJsonSyntaxHighlighter obj={this.state.results.config}/>}
-							</div> : ""}
-					</div>}
+						<Nav variant="tabs">
+							<Nav.Item>
+								<Nav.Link onClick={() => this.setState({resultsDisplay: DISPLAY_TYPE.JSON})}>
+									JSON Output</Nav.Link>
+							</Nav.Item>
+							<Nav.Item>
+								<Nav.Link onClick={() => this.setState({resultsDisplay: DISPLAY_TYPE.GRAPH})}>
+									Graph</Nav.Link>
+							</Nav.Item>
+							<Nav.Item>
+								<Nav.Link onClick={() => this.setState({resultsDisplay: DISPLAY_TYPE.AGGREGATE})}>
+									Aggregated</Nav.Link>
+							</Nav.Item>
+						</Nav>
+						{this.state.resultsDisplay === DISPLAY_TYPE.JSON ? this.jsonResults() : ""}
+						{this.state.resultsDisplay === DISPLAY_TYPE.GRAPH ? this.graphResults() : ""}
+						{this.state.resultsDisplay === DISPLAY_TYPE.AGGREGATE ? this.aggregateResults() : ""}
+					</div>
+				}
 			</div>
 		</div>
+	}
+
+	jsonResults() {
+		return <div>
+			{this.state.results.connect ? <div><h3>Connect</h3>
+				{<ReactJsonSyntaxHighlighter obj={this.state.results.connect}/>} </div> : ""}
+			{this.state.results.collect ? <div className="json-display"><h3>Collect</h3>
+				{<ReactJsonSyntaxHighlighter obj={this.state.results.collect}/>}</div> : ""}
+			{this.state.results.disconnect ? <div><h3>Disconnect</h3>
+				{<ReactJsonSyntaxHighlighter obj={this.state.results.disconnect}/>} </div> : ""}
+			{this.state.results.config ?
+				<div><h3>Config</h3> {<ReactJsonSyntaxHighlighter obj={this.state.results.config}/>}
+				</div> : ""}
+		</div>;
+	}
+
+
+	graphResults() {
+		return <ChartContainer timeRange={this.state.results.activities.graphData.timerange()} width={1000} >
+			<ChartRow height="600">
+				<YAxis id="axis" label="Watt Hours" width="60" max={20000} type="linear"/>
+				<Charts>
+					<LineChart axis="axis" series={this.state.results.activities.graphData} columns={["watts"]}/>
+				</Charts>
+			</ChartRow>
+		</ChartContainer>
 	}
 
 	//TODO move to component
@@ -321,14 +366,14 @@ class App extends Component {
 		this.setState({envRefList});
 	}
 
-	activityDisplay() {
-		return <div className="panel panel-default activity-display">
+	aggregateResults() {
+		return <div className="panel panel-default">
 			<div className="panel-header"><h1 className="title">Activities</h1></div>
 			<div className="panel-body">
-				<p>Total watt hours: {this.state.results.activities.wattHours}</p>
-				<p>Start date: {this.state.results.activities.startDate} to end date:
-					{this.state.results.activities.endDate}</p>
-				<p>Watt hours per day: {this.state.results.activities.wattsPerDay}</p>
+				<p>Total watt hours: {this.state.results.activities.text.wattHours}</p>
+				<p>Start date: {this.state.results.activities.text.startDate} to end date:
+					{this.state.results.activities.text.endDate}</p>
+				<p>Watt hours per day: {this.state.results.activities.text.wattsPerDay}</p>
 			</div>
 		</div>
 	}

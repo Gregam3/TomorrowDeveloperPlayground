@@ -1,3 +1,5 @@
+import { TimeSeries, TimeRange } from "pondjs";
+
 export function processActivities(activities) {
 	let wattHours = 0;
 	let startDate = new Date().getTime();
@@ -12,7 +14,18 @@ export function processActivities(activities) {
 			endDate = Date.parse(a.datetime);
 	});
 
-	return {wattHours, startDate: new Date(startDate).toLocaleDateString(),
+	return {text: {wattHours, startDate: new Date(startDate).toLocaleDateString(),
 		endDate: new Date(endDate).toLocaleDateString(),
-		wattsPerDay: wattHours / ((endDate - startDate) / (86400000))};
+		wattsPerDay: wattHours / ((endDate - startDate) / (86400000))},
+		graphData: new TimeSeries(transformToGraphData(activities))
+	};
+}
+
+function transformToGraphData(activities) {
+	return {
+		name: "Watt hours",
+		columns: ["time", "watts"],
+		points: activities.map(a => [Date.parse(a.datetime), a.energyWattHours])
+			.sort((a, b) => a[0] - b[0])
+	};
 }
