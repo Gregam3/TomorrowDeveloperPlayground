@@ -32,18 +32,18 @@ async function evaluate(code, authDetails, env) {
 
 	function importIntegration() {
 		return new Promise((resolve, reject) => {
-			import("./integration-test/integration").then((module) => {
-				console.log('Importing integration');
-				stub = module;
-				if (module) resolve();
+				console.log('Deleting cached Integration module');
+				delete require.cache[require.resolve('./integration-test/integration.js')];
+				console.log('Importing new integration');
+				stub = require("./integration-test/integration");
+				if (stub) resolve();
 				else reject();
-			});
 		});
 	}
 
 	function writeCode() {
 		return new Promise((resolve, reject) => {
-			fs.writeFile('./integration-test/integration.mjs', code + exportCode, (err) => {
+			fs.writeFile('./integration-test/integration.js', code + exportCode, (err) => {
 				if (err) {
 					console.log('File Writing error:' + err);
 					reject()

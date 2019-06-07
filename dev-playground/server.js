@@ -8,6 +8,7 @@ const helmet = require('helmet');
 const path = require('path');
 const fs = require('fs');
 const io = require('socket.io')(server, { pingInterval: 5000 });
+import request from 'superagent';
 
 let files = {};
 
