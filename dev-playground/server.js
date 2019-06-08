@@ -1,4 +1,4 @@
-const evaluator = require("./CodeEvaluator");
+const handler = require("./CodeHandler");
 const express = require('express');
 const bodyParser = require('body-parser');
 const app = express();
@@ -49,14 +49,16 @@ let socket = null;
 io.on('connection', (s) => {
 	console.log('New websocket connection ', s.handshake.headers.origin);
 	socket = s;
+	socket.emit('setIntegrations', files);
+	socket.emit('setCode', handler.readCode(s.handshake.query.name));
 });
-
 
 app.post('/evaluate-code', async (req, res) => {
 	res.status(200);
 	console.log("----------------------------------------------------------------------------" +
 		"\nRequest Start |\n---------------");
-	res.json(await evaluator.evaluate(req.body.code, req.body.authDetails, req.body.env));
+	res.json(await handler.evaluate(req.body.code, req.body.authDetails,
+		req.body.env, req.body.id));
 	console.log('Request End\n--------------------------------------------------------------------------');
 	res.end();
 });
@@ -68,6 +70,11 @@ const emitOpenUrl = (url) =>
 const emitResults = (results) =>
 	socket.emit("setResults", results);
 
+const emitCode = (code) => socket.emit('setCode', code);
+
+const emitError = (error) => socket.emit('evaluation-error', error);
 
 module.exports.emitOpenUrl = emitOpenUrl;
 module.exports.emitResults = emitResults;
+module.exports.emitCode = emitCode;
+module.exports.emitError = emitError;

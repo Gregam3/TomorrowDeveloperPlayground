@@ -1,17 +1,20 @@
 import React, {Component} from 'react';
 import './App.css';
 import MonacoEditor from 'react-monaco-editor';
-import {Button, Col, Dropdown, Nav, Row} from 'react-bootstrap';
+import {Button, Dropdown, Nav} from 'react-bootstrap';
 import ReactJsonSyntaxHighlighter from 'react-json-syntax-highlighter'
 import Form from "react-bootstrap/Form";
-import {evaluateCode, getIntegrations} from "./RequestManager";
+import {evaluateCode} from "./RequestManager";
 import {Modal} from "react-bootstrap";
 import Cookies from 'universal-cookie';
 import {processActivities} from "./ActivityProcessor";
 import io from "socket.io-client";
-import { Charts, ChartContainer, ChartRow, YAxis, LineChart } from "react-timeseries-charts";
-import { TimeSeries, TimeRange } from "pondjs";
-
+import {Charts, ChartContainer, ChartRow, YAxis, LineChart} from "react-timeseries-charts";
+import {TimeSeries, TimeRange} from "pondjs";
+import uuidv1 from 'uuid/v1';
+import {Documentation} from "./Documentation";
+import {toast, ToastContainer} from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const editorOptions = {
 	selectOnLineNumbers: true,
@@ -21,12 +24,13 @@ const editorOptions = {
 	fontSize: 18
 };
 
+
 const cookies = new Cookies();
 
-const initialCode = cookies.get('code') === undefined ?
-	`import request from 'superagent';  
-	
-	//Parameters must be methods
+const id = cookies.get('id') !== undefined ? cookies.get('id') : uuidv1();
+
+const initialCode =
+	`//Parameters must be methods
 async function connect(requestLogin, requestWebView) {
   const { username, password } = await requestLogin();
 
@@ -53,7 +57,7 @@ const config = {
   country: '', //i.e. UK, DK 
   isPrivate: true,
   type: null,
-};` : cookies.get('code');
+};`;
 
 const AUTH_TYPE = {
 	WEB_AUTH: 0,
@@ -69,15 +73,13 @@ const DISPLAY_TYPE = {
 const nodePort = 3001;
 
 class App extends Component {
-	socket = io('http://' + window.location.hostname + ':' + nodePort);
-
 	state = {
 		functions: null,
 		results: {},
-		code: initialCode,
+		code: null,
 		previousRuns: cookies.get('previous-runs'),
 		envRefList: [],
-		authType: null,
+		authType: AUTH_TYPE.MANUAL_AUTH,
 		authChoice: {
 			webviewRadio: React.createRef(),
 			manualRadio: React.createRef()
@@ -94,24 +96,33 @@ class App extends Component {
 
 	constructor(props) {
 		super(props);
-		this.populateIntegrations();
-		this.socket.on('openUrl',
+		if (cookies.get('id') === undefined) cookies.set('id', id);
+
+		const socket = io('http://' + window.location.hostname + ':' + nodePort, {query: 'name=' + id});
+		socket.on('setIntegrations',
+			(integrations) => this.setState({
+				integrations: {
+					all: integrations,
+					selected: null
+				}
+			}));
+		socket.on('openUrl',
 			(url) => window.open(url));
-		this.socket.on('setResults',
+		socket.on('setResults',
 			(results) => {
+				toast.success('Results Updated', {autoClose: 2000});
 				results.activities = processActivities(results.collect.activities);
 				this.setState({results});
 				console.log(this.state.results.activities.graphData.avg("watts"));
 			});
-	}
-
-	async populateIntegrations() {
-		this.setState({
-			integrations: {
-				all: await getIntegrations(),
-				selected: null
-			}
-		});
+		socket.on('setCode',
+			(code) => this.setState({code: code !== null ? code : initialCode}));
+		socket.on('evaluation-error',
+			(error) => {
+			console.log(error)
+				toast.error(Object.keys(error).length > 0 ? JSON.stringify(error) :
+					'An Error occurred, but no error message could be retrieved')
+			});
 	}
 
 	render() {
@@ -130,16 +141,19 @@ class App extends Component {
 				{this.state.integrations && this.state.integrations.view ? this.viewIntegrationModal() : ""}
 				{this.state.previousRuns ? this.codeHistoryDropdown() : ""}
 				{this.environmentPanel()}
+				<Documentation/>
+				<ToastContainer style={{width: '40%', fontSize: '25pt'}}/>
 
-				<MonacoEditor
-					height="850"
-					width="1300"
-					language="javascript"
-					theme="vs-light"
-					value={this.state.code}
-					options={editorOptions}
-					onChange={v => this.setState({code: v})}
-				/>
+				{this.state.code === null ? <h1>Fetching Code</h1> :
+					<MonacoEditor
+						height="850"
+						width="1300"
+						language="javascript"
+						theme="vs-light"
+						value={this.state.code}
+						options={editorOptions}
+						onChange={v => this.setState({code: v})}
+					/>}
 			</div>
 		);
 	}
@@ -152,13 +166,13 @@ class App extends Component {
 			if (previousRuns === undefined) previousRuns = {};
 
 			previousRuns['Run at: ' + new Date().toLocaleString()] = this.state.code;
-			cookies.set('previous-runs', previousRuns);
+			// cookies.set('previous-runs', previousRuns);
 			this.setState({previousRuns});
 		}
 
 		let authDetails = {authType: this.state.authType};
 
-		cookies.set('code', this.state.code);
+		// cookies.set('code', this.state.code);
 
 		if (this.state.authType === AUTH_TYPE.MANUAL_AUTH) {
 			cookies.set('username', this.authRefs.username.current.value);
@@ -170,7 +184,9 @@ class App extends Component {
 			authDetails.url = this.authRefs.url.current.value;
 		}
 
-		evaluateCode(this.state.code, authDetails, getEnvAsObject(this.state.envRefList));
+		console.log(id);
+
+		evaluateCode(this.state.code, authDetails, getEnvAsObject(this.state.envRefList), id);
 
 		function getEnvAsObject(refs) {
 			let obj = {};
@@ -179,25 +195,12 @@ class App extends Component {
 		}
 	}
 
-	codeHistoryDropdown() {
-		return <Dropdown>
-			<Dropdown.Toggle variant="secondary" size="lg">Code History</Dropdown.Toggle>
-
-			<Dropdown.Menu>
-				{Object.keys(this.state.previousRuns).map(codeVersion => <Dropdown.Item
-					onClick={() => this.setState({code: this.state.previousRuns[codeVersion]})}>{codeVersion}</Dropdown.Item>)}
-			</Dropdown.Menu>
-		</Dropdown>
-	}
-
-
 	//TODO move to component
 	testResults() {
 		return <div className="test-results panel panel-default">
 			<div className="panel-header" style={{marginLeft: '10px'}}>
 				<h1>Test Results <Button variant="secondary" style={{fontSize: '26px'}}
 				                         onClick={() => this.interpretJS()}> Run </Button></h1>
-				{this.authRadioSelect()}
 			</div>
 			<div className="panel-body">
 				{this.state.integrations ? this.integrationPanel() : ""}
@@ -242,7 +245,7 @@ class App extends Component {
 
 
 	graphResults() {
-		return <ChartContainer timeRange={this.state.results.activities.graphData.timerange()} width={1000} >
+		return <ChartContainer timeRange={this.state.results.activities.graphData.timerange()} width={1000}>
 			<ChartRow height="600">
 				<YAxis id="axis" label="Watt Hours" width="60" max={20000} type="linear"/>
 				<Charts>
@@ -321,9 +324,9 @@ class App extends Component {
 			</Modal.Header>
 			<Modal.Body>
 				<pre>
-					<code>
-						{this.state.integrations.all[this.state.integrations.selected]}
-					</code>
+				<code>
+				{this.state.integrations.all[this.state.integrations.selected]}
+				</code>
 				</pre>
 			</Modal.Body>
 			<Modal.Footer>
@@ -341,7 +344,6 @@ class App extends Component {
 			<div className="panel-header">
 				<h1 className="title">Environment Variables &nbsp;
 					<Button onClick={() => this.addEnvInput()} size="lg" variant="secondary">Add</Button></h1>
-				Use <code>import env from './env'</code> and access items with <code>env.key</code>
 			</div>
 			<div className="panel-body">
 				{this.state.envRefList.map(e => <Form>
@@ -376,34 +378,6 @@ class App extends Component {
 				<p>Watt hours per day: {this.state.results.activities.text.wattsPerDay}</p>
 			</div>
 		</div>
-	}
-
-	authRadioSelect() {
-		return <Form>
-			<fieldset>
-				<Form.Group as={Row}>
-					<Form.Label as="legend" column sm={3}>
-						Authorisation
-					</Form.Label>
-					<Col sm={10}>
-						<Form.Check
-							type="radio"
-							label="&nbsp;&nbsp;&nbsp;&nbsp;Manual Input"
-							name="formHorizontalRadios"
-							id="formHorizontalRadios1"
-							onClick={() => this.setState({authType: AUTH_TYPE.MANUAL_AUTH})}
-						/>
-						<Form.Check
-							type="radio"
-							label="&nbsp;&nbsp;&nbsp;&nbsp;Webview Login"
-							name="formHorizontalRadios"
-							id="formHorizontalRadios2"
-							onClick={() => this.setState({authType: AUTH_TYPE.WEB_AUTH})}
-						/>
-					</Col>
-				</Form.Group>
-			</fieldset>
-		</Form>
 	}
 }
 

@@ -30,21 +30,26 @@
     position: absolute;
     left: 300px;
     top: 940px;
-    width: 500px;
+    width: 400px;
     height: 300px;
-    font-size: 20px
+    font-size: 20px;
 }
 
-.activity-display {
+.documentation {
     position: absolute;
-    left: 820px;
+    left: 750px;
     top: 940px;
-    width: 470px;
+    width: 530px;
     height: 300px;
-    font-size: 20px
+    font-size: 20px;
+    overflow-y: scroll;
 }
 
 .title {
     margin-left: 10px
+}
+
+.test {
+    font-size: 25pt;
 }
 
