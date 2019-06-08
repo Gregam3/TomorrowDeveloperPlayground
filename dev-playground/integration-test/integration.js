@@ -139,7 +139,7 @@ async function collect(state, { logWarning }) {
 
 const config = {
   description: 'collects electricity data from your smart meter',
-  label: 'Test',
+  label: 'Barry',
   country: 'DK',
   isPrivate: true,
   type: 'ACTIVITY_TYPE_ELECTRICITY',
