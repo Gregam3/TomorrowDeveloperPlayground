@@ -12,6 +12,8 @@ import request from 'superagent';
 
 let files = {};
 
+let resolveWebView = null;
+
 //TODO replace with .flatMap
 [path.join('../tmrowapp-contrib/integrations/electricity/'), path.join('../tmrowapp-contrib/integrations/transportation/')]
 	.forEach(dir => fs.readdir(dir, (pErr, file) =>
@@ -63,6 +65,13 @@ app.post('/evaluate-code', async (req, res) => {
 	res.end();
 });
 
+app.get('/oauth_callback', (req, res) => {
+	console.log('callback');
+	resolveWebView();
+	res.send('<script type="text/javascript">window.close()</script>')
+});
+
+const setWebView = (webView) => resolveWebView = webView;
 
 const emitOpenUrl = (url) =>
 	socket.emit("openUrl", url, (data) => console.log('', data));
@@ -78,3 +87,4 @@ module.exports.emitOpenUrl = emitOpenUrl;
 module.exports.emitResults = emitResults;
 module.exports.emitCode = emitCode;
 module.exports.emitError = emitError;
+module.exports.setWebView = setWebView;

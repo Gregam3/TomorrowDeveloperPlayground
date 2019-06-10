@@ -77,8 +77,6 @@ function objectToCode(env) {
 	return '{' + Object.keys(env).map(k => k + ':"' + env[k] + '"').join(",") + '};';
 }
 
-let resolveWebView = null;
-
 
 async function assessFunctions(stub, authDetails) {
 	const requestLogin = authDetails.username && authDetails.password ? () => {
@@ -87,10 +85,15 @@ async function assessFunctions(stub, authDetails) {
 	};
 
 	const requestWebView = (url, callbackUrl) => {
+		console.log('called', new Date().getTime());
 		return new Promise((resolve, reject) => {
 			if (!url) reject();
 
-			resolveWebView = resolve();
+			console.log('resolved', new Date().getTime());
+
+			const webView = resolve();
+
+			server.setWebView(webView);
 			server.emitOpenUrl(url);
 		});
 	};

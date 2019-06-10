@@ -119,7 +119,7 @@ class App extends Component {
 			(code) => this.setState({code: code !== null ? code : initialCode}));
 		socket.on('evaluation-error',
 			(error) => {
-			console.log(error)
+			console.log(error, 'test')
 				toast.error(Object.keys(error).length > 0 ? JSON.stringify(error) :
 					'An Error occurred, but no error message could be retrieved')
 			});
@@ -166,13 +166,10 @@ class App extends Component {
 			if (previousRuns === undefined) previousRuns = {};
 
 			previousRuns['Run at: ' + new Date().toLocaleString()] = this.state.code;
-			// cookies.set('previous-runs', previousRuns);
 			this.setState({previousRuns});
 		}
 
 		let authDetails = {authType: this.state.authType};
-
-		// cookies.set('code', this.state.code);
 
 		if (this.state.authType === AUTH_TYPE.MANUAL_AUTH) {
 			cookies.set('username', this.authRefs.username.current.value);
