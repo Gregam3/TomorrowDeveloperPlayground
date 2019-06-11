@@ -60,7 +60,7 @@ app.post('/evaluate-code', async (req, res) => {
 	console.log("----------------------------------------------------------------------------" +
 		"\nRequest Start |\n---------------");
 	res.json(await handler.evaluate(req.body.code, req.body.authDetails,
-		req.body.env, req.body.id));
+		req.body.env, req.body.id, req.body.stateInjection));
 	console.log('Request End\n--------------------------------------------------------------------------');
 	res.end();
 });
@@ -74,7 +74,7 @@ app.get('/oauth_callback', (req, res) => {
 const setWebView = (webView) => resolveWebView = webView;
 
 const emitOpenUrl = (url) =>
-	socket.emit("openUrl", url, (data) => console.log('', data));
+	socket.emit("openUrl", url);
 
 const emitResults = (results) =>
 	socket.emit("setResults", results);

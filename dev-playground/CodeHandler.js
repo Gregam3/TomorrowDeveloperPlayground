@@ -6,7 +6,7 @@ const FUN_NAMES = ["connect", "collect", "disconnect", "config"];
 const exportCode = `\n\nexport {${FUN_NAMES.join(',')}};`;
 let stub = null;
 
-async function evaluate(code, authDetails, env, id) {
+async function evaluate(code, authDetails, env, id, stateInjection) {
 	console.log('Began Evaluating');
 	const basePackage = './integration-test/' + id;
 
@@ -17,8 +17,6 @@ async function evaluate(code, authDetails, env, id) {
 			fs.appendFileSync(basePackage + '/integration.js', '');
 			fs.appendFileSync(basePackage + '/env.js', '');
 		} else console.log('Session package already exists')
-
-
 	}
 
 	function writeEnv() {
@@ -63,37 +61,27 @@ async function evaluate(code, authDetails, env, id) {
 			});
 		});
 	}
-
 	createSessionPackage();
-
 	return writeEnv().then(() =>
 		writeCode().then(() =>
 			importIntegration().then(() =>
-				assessFunctions(stub, authDetails))));
+				assessFunctions(stub, authDetails, stateInjection))));
 }
-
 
 function objectToCode(env) {
 	return '{' + Object.keys(env).map(k => k + ':"' + env[k] + '"').join(",") + '};';
 }
 
-
-async function assessFunctions(stub, authDetails) {
+async function assessFunctions(stub, authDetails, stateInjection) {
 	const requestLogin = authDetails.username && authDetails.password ? () => {
-		return {username: authDetails.username, password: authDetails.password}
-	} : () => {
-	};
+		return { username: authDetails.username, password: authDetails.password }
+	} : () => { };
 
 	const requestWebView = (url, callbackUrl) => {
-		console.log('called', new Date().getTime());
 		return new Promise((resolve, reject) => {
 			if (!url) reject();
 
-			console.log('resolved', new Date().getTime());
-
-			const webView = resolve();
-
-			server.setWebView(webView);
+			server.setWebView(resolve);
 			server.emitOpenUrl(url);
 		});
 	};
@@ -101,14 +89,26 @@ async function assessFunctions(stub, authDetails) {
 	console.log('Assessing Functions, integration logs [');
 
 	try {
-		const connectResult = await stub.connect(requestLogin, requestWebView);
-
-		server.emitResults(await {
-			connect: connectResult,
-			collect: await stub.collect(connectResult, {logWarning: (err) => console.log(err)}),
-			disconnect: await stub.disconnect(),
-			config: stub.config
-		});
+		if (Object.keys(stateInjection).length > 0) {
+			console.log('Injecting state', stateInjection);
+			server.emitResults(await {
+				connect: {},
+				collect: await stub.collect(stateInjection, 
+					{ logWarning: (err) => console.log(err) }),
+				disconnect: {},
+				config: stub.config
+			});
+		} else {
+			console.log('No state injection found, executing normally.');
+			const connectResult = await stub.connect(requestLogin, requestWebView);
+			server.emitResults(await {
+				connect: connectResult,
+				collect: await stub.collect(connectResult, 
+					{ logWarning: (err) => console.log(err) }),
+				disconnect: await stub.disconnect(),
+				config: stub.config
+			});
+		}
 		console.log("]");
 	} catch (e) {
 		sendError(e);

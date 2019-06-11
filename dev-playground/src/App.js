@@ -15,6 +15,8 @@ import uuidv1 from 'uuid/v1';
 import {Documentation} from "./Documentation";
 import {toast, ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import JSONInput from 'react-json-editor-ajrm';
+import locale from 'react-json-editor-ajrm/locale/en';
 
 const editorOptions = {
 	selectOnLineNumbers: true,
@@ -23,7 +25,6 @@ const editorOptions = {
 	copyWithSyntaxHighlighting: true,
 	fontSize: 18
 };
-
 
 const cookies = new Cookies();
 
@@ -77,14 +78,14 @@ class App extends Component {
 		functions: null,
 		results: {},
 		code: null,
-		previousRuns: cookies.get('previous-runs'),
 		envRefList: [],
 		authType: AUTH_TYPE.MANUAL_AUTH,
 		authChoice: {
 			webviewRadio: React.createRef(),
 			manualRadio: React.createRef()
 		},
-		resultsDisplay: DISPLAY_TYPE.JSON
+		resultsDisplay: DISPLAY_TYPE.JSON,
+		injectState: ""
 	};
 
 	authRefs = {
@@ -93,6 +94,7 @@ class App extends Component {
 		url: React.createRef(),
 	};
 
+	executionRef = React.createRef();
 
 	constructor(props) {
 		super(props);
@@ -113,13 +115,12 @@ class App extends Component {
 				toast.success('Results Updated', {autoClose: 2000});
 				results.activities = processActivities(results.collect.activities);
 				this.setState({results});
-				console.log(this.state.results.activities.graphData.avg("watts"));
 			});
 		socket.on('setCode',
 			(code) => this.setState({code: code !== null ? code : initialCode}));
 		socket.on('evaluation-error',
 			(error) => {
-			console.log(error, 'test')
+				console.log(error, 'test');
 				toast.error(Object.keys(error).length > 0 ? JSON.stringify(error) :
 					'An Error occurred, but no error message could be retrieved')
 			});
@@ -141,6 +142,7 @@ class App extends Component {
 				{this.state.integrations && this.state.integrations.view ? this.viewIntegrationModal() : ""}
 				{this.state.previousRuns ? this.codeHistoryDropdown() : ""}
 				{this.environmentPanel()}
+				{this.configureRunModal()}
 				<Documentation/>
 				<ToastContainer style={{width: '40%', fontSize: '25pt'}}/>
 
@@ -158,7 +160,7 @@ class App extends Component {
 		);
 	}
 
-	async interpretJS() {
+	interpretJS() {
 		this.setState({results: {}});
 		let previousRuns = cookies.get('previous-runs');
 
@@ -176,14 +178,10 @@ class App extends Component {
 			cookies.set('password', this.authRefs.password.current.value);
 			authDetails.username = this.authRefs.username.current.value;
 			authDetails.password = this.authRefs.password.current.value;
-		} else if (this.state.authType === AUTH_TYPE.WEB_AUTH) {
-			cookies.set('url', this.authRefs.url.current.value);
-			authDetails.url = this.authRefs.url.current.value;
 		}
 
-		console.log(id);
-
-		evaluateCode(this.state.code, authDetails, getEnvAsObject(this.state.envRefList), id);
+		evaluateCode(this.state.code, authDetails, getEnvAsObject(this.state.envRefList), 
+				id, this.state.injectState);
 
 		function getEnvAsObject(refs) {
 			let obj = {};
@@ -192,12 +190,38 @@ class App extends Component {
 		}
 	}
 
+	configureRunModal() {
+		return <Modal animation={false} show={this.state.configureRunModal} size="lg">
+			<Modal.Header closeButton>
+				<Modal.Title><h1>Configure run</h1></Modal.Title>
+			</Modal.Header>
+			<Modal.Body>
+				<h3>Execution Options</h3>
+				State to Inject, leave empty to execute as usual.
+				<JSONInput
+					locale={locale}
+					placeholder={{oauthKey: "EXAMPLEKEY"}}
+					height='120px'
+					onChange={(v) => {
+						console.log(v.json)
+						this.setState({injectState: JSON.parse(v.json)})
+						}}
+				/>
+			</Modal.Body>
+			<Modal.Footer>
+				<Button onClick={() => this.setState({configureRunModal: false})}> Close </Button>
+			</Modal.Footer>
+		</Modal>
+	}
+
 	//TODO move to component
 	testResults() {
 		return <div className="test-results panel panel-default">
 			<div className="panel-header" style={{marginLeft: '10px'}}>
 				<h1>Test Results <Button variant="secondary" style={{fontSize: '26px'}}
-				                         onClick={() => this.interpretJS()}> Run </Button></h1>
+				                         onClick={() => this.interpretJS()}> Run </Button>
+					<Button variant="secondary" style={{fontSize: '26px'}}
+					        onClick={() => this.setState({configureRunModal: true})}> Cog </Button></h1>
 			</div>
 			<div className="panel-body">
 				{this.state.integrations ? this.integrationPanel() : ""}
@@ -239,7 +263,6 @@ class App extends Component {
 				</div> : ""}
 		</div>;
 	}
-
 
 	graphResults() {
 		return <ChartContainer timeRange={this.state.results.activities.graphData.timerange()} width={1000}>
