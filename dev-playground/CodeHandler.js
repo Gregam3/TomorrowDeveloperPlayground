@@ -1,6 +1,10 @@
 const server = require("./server");
 
 const fs = require('fs');
+const definitions = require('../tmrowapp-contrib/definitions');
+const models = {
+	transport: require('../tmrowapp-contrib/co2eq/transportation')
+}
 const FUN_NAMES = ["connect", "collect", "disconnect", "config"];
 
 const exportCode = `\n\nexport {${FUN_NAMES.join(',')}};`;
@@ -86,14 +90,14 @@ async function assessFunctions(stub, authDetails, stateInjection) {
 		});
 	};
 
-	console.log('Assessing Functions, integration logs [');
+	console.log('Assessing Functions');
 
 	try {
 		if (Object.keys(stateInjection).length > 0) {
 			console.log('Injecting state', stateInjection);
 			server.emitResults(await {
 				connect: {},
-				collect: await stub.collect(stateInjection, 
+				collect: await stub.collect(stateInjection,
 					{ logWarning: (err) => console.log(err) }),
 				disconnect: {},
 				config: stub.config
@@ -101,29 +105,37 @@ async function assessFunctions(stub, authDetails, stateInjection) {
 		} else {
 			console.log('No state injection found, executing normally.');
 			const connectResult = await stub.connect(requestLogin, requestWebView);
+			const collectResult = await stub.collect(connectResult,
+				{ logWarning: (err) => console.log(err) });
+			
 			server.emitResults(await {
 				connect: connectResult,
-				collect: await stub.collect(connectResult, 
-					{ logWarning: (err) => console.log(err) }),
+				collect: collectResult,
 				disconnect: await stub.disconnect(),
-				config: stub.config
+				config: stub.config,
+				modelledActivities:
+					collectResult.activities.map(a => {
+						if(a.activityType.includes('TRANSPORT')) 
+							return models.transport.carbonIntensity(a);
+						//https://www.rensmart.com/Calculators/KWH-to-CO2 temporary
+						else return a.energyWattHours * 0.00028307
+					}) 
 			});
 		}
-		console.log("]");
 	} catch (e) {
 		sendError(e);
 	}
 }
 
+const modelActivities = (activities) =>
+	activities.map(a => models.transport.carbonEmissions(a))
+
 function readCode(id) {
-	const path = './integration-test/' + id;
 	let code = null;
 
-	if (fs.existsSync(path)) {
-		code = fs.readFileSync(path + '/integration.js').toString()
+	if (fs.existsSync('./integration-test/' + id))
+		code = fs.readFileSync('./integration-test/' + id + '/integration.js').toString()
 			.replace('export {connect,collect,disconnect,config};', '');
-	}
-
 	return code;
 }
 
@@ -135,4 +147,3 @@ function sendError(error) {
 
 module.exports.evaluate = evaluate;
 module.exports.readCode = readCode;
-

@@ -1,19 +1,19 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import './App.css';
 import MonacoEditor from 'react-monaco-editor';
-import {Button, Dropdown, Nav} from 'react-bootstrap';
+import { Button, Dropdown, Nav } from 'react-bootstrap';
 import ReactJsonSyntaxHighlighter from 'react-json-syntax-highlighter'
 import Form from "react-bootstrap/Form";
-import {evaluateCode} from "./RequestManager";
-import {Modal} from "react-bootstrap";
+import { evaluateCode } from "./RequestManager";
+import { Modal } from "react-bootstrap";
 import Cookies from 'universal-cookie';
-import {processActivities} from "./ActivityProcessor";
+import { processActivities } from "./ActivityProcessor";
 import io from "socket.io-client";
-import {Charts, ChartContainer, ChartRow, YAxis, LineChart} from "react-timeseries-charts";
-import {TimeSeries, TimeRange} from "pondjs";
+import { Charts, ChartContainer, ChartRow, YAxis, LineChart } from "react-timeseries-charts";
+import { TimeSeries, TimeRange } from "pondjs";
 import uuidv1 from 'uuid/v1';
-import {Documentation} from "./Documentation";
-import {toast, ToastContainer} from 'react-toastify';
+import { Documentation } from "./Documentation";
+import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import JSONInput from 'react-json-editor-ajrm';
 import locale from 'react-json-editor-ajrm/locale/en';
@@ -41,7 +41,7 @@ async function connect(requestLogin, requestWebView) {
   };
 }
 
-//Clear state after completion
+//Clear state after completion, this can often be left empty
 function disconnect() {
   return {};
 }
@@ -55,7 +55,7 @@ async function collect(state, { logWarning }) {
 const config = {
   label: '',
   description: '',
-  country: '', //i.e. UK, DK 
+  country: '', //i.e. DK, UK, etc
   isPrivate: true,
   type: null,
 };`;
@@ -85,7 +85,7 @@ class App extends Component {
 			manualRadio: React.createRef()
 		},
 		resultsDisplay: DISPLAY_TYPE.JSON,
-		injectState: ""
+		injectState: {}
 	};
 
 	authRefs = {
@@ -100,7 +100,7 @@ class App extends Component {
 		super(props);
 		if (cookies.get('id') === undefined) cookies.set('id', id);
 
-		const socket = io('http://' + window.location.hostname + ':' + nodePort, {query: 'name=' + id});
+		const socket = io('http://' + window.location.hostname + ':' + nodePort, { query: 'name=' + id });
 		socket.on('setIntegrations',
 			(integrations) => this.setState({
 				integrations: {
@@ -112,12 +112,13 @@ class App extends Component {
 			(url) => window.open(url));
 		socket.on('setResults',
 			(results) => {
-				toast.success('Results Updated', {autoClose: 2000});
+				toast.success('Results Updated', { autoClose: 2000 });
+				console.log(results)
 				results.activities = processActivities(results.collect.activities);
-				this.setState({results});
+				this.setState({ results });
 			});
 		socket.on('setCode',
-			(code) => this.setState({code: code !== null ? code : initialCode}));
+			(code) => this.setState({ code: code !== null ? code : initialCode }));
 		socket.on('evaluation-error',
 			(error) => {
 				console.log(error, 'test');
@@ -133,8 +134,8 @@ class App extends Component {
 					<img style={{
 						marginTop: '10px',
 						flex: 1
-					}} src="tmrow-light.png"/>
-					<h1 style={{float: 'right', marginRight: '70%'}}>
+					}} src="tmrow-light.png" />
+					<h1 style={{ float: 'right', marginRight: '70%' }}>
 						Developer Playground </h1>
 				</div>
 				{this.authForm()}
@@ -143,8 +144,8 @@ class App extends Component {
 				{this.state.previousRuns ? this.codeHistoryDropdown() : ""}
 				{this.environmentPanel()}
 				{this.configureRunModal()}
-				<Documentation/>
-				<ToastContainer style={{width: '40%', fontSize: '25pt'}}/>
+				<Documentation />
+				<ToastContainer style={{ width: '40%', fontSize: '25pt' }} />
 
 				{this.state.code === null ? <h1>Fetching Code</h1> :
 					<MonacoEditor
@@ -154,24 +155,24 @@ class App extends Component {
 						theme="vs-light"
 						value={this.state.code}
 						options={editorOptions}
-						onChange={v => this.setState({code: v})}
+						onChange={v => this.setState({ code: v })}
 					/>}
 			</div>
 		);
 	}
 
 	interpretJS() {
-		this.setState({results: {}});
+		this.setState({ results: {} });
 		let previousRuns = cookies.get('previous-runs');
 
 		if (cookies.get('code') !== undefined) {
 			if (previousRuns === undefined) previousRuns = {};
 
 			previousRuns['Run at: ' + new Date().toLocaleString()] = this.state.code;
-			this.setState({previousRuns});
+			this.setState({ previousRuns });
 		}
 
-		let authDetails = {authType: this.state.authType};
+		let authDetails = { authType: this.state.authType };
 
 		if (this.state.authType === AUTH_TYPE.MANUAL_AUTH) {
 			cookies.set('username', this.authRefs.username.current.value);
@@ -180,8 +181,8 @@ class App extends Component {
 			authDetails.password = this.authRefs.password.current.value;
 		}
 
-		evaluateCode(this.state.code, authDetails, getEnvAsObject(this.state.envRefList), 
-				id, this.state.injectState);
+		evaluateCode(this.state.code, authDetails, getEnvAsObject(this.state.envRefList),
+			id, this.state.injectState);
 
 		function getEnvAsObject(refs) {
 			let obj = {};
@@ -200,16 +201,13 @@ class App extends Component {
 				State to Inject, leave empty to execute as usual.
 				<JSONInput
 					locale={locale}
-					placeholder={{oauthKey: "EXAMPLEKEY"}}
+					placeholder={this.state.injectState}
 					height='120px'
-					onChange={(v) => {
-						console.log(v.json)
-						this.setState({injectState: JSON.parse(v.json)})
-						}}
+					onChange={(v) => this.setState({ injectState: JSON.parse(v.json) })}
 				/>
 			</Modal.Body>
 			<Modal.Footer>
-				<Button onClick={() => this.setState({configureRunModal: false})}> Close </Button>
+				<Button onClick={() => this.setState({ configureRunModal: false })}> Close </Button>
 			</Modal.Footer>
 		</Modal>
 	}
@@ -217,11 +215,11 @@ class App extends Component {
 	//TODO move to component
 	testResults() {
 		return <div className="test-results panel panel-default">
-			<div className="panel-header" style={{marginLeft: '10px'}}>
-				<h1>Test Results <Button variant="secondary" style={{fontSize: '26px'}}
-				                         onClick={() => this.interpretJS()}> Run </Button>
-					<Button variant="secondary" style={{fontSize: '26px'}}
-					        onClick={() => this.setState({configureRunModal: true})}> Cog </Button></h1>
+			<div className="panel-header" style={{ marginLeft: '10px' }}>
+				<h1>Test Results <Button variant="secondary" style={{ fontSize: '26px' }}
+					onClick={() => this.interpretJS()}> Run </Button>
+					<Button variant="secondary" style={{ fontSize: '26px' }}
+						onClick={() => this.setState({ configureRunModal: true })}> Cog </Button></h1>
 			</div>
 			<div className="panel-body">
 				{this.state.integrations ? this.integrationPanel() : ""}
@@ -229,15 +227,15 @@ class App extends Component {
 					<div>
 						<Nav variant="tabs">
 							<Nav.Item>
-								<Nav.Link onClick={() => this.setState({resultsDisplay: DISPLAY_TYPE.JSON})}>
+								<Nav.Link onClick={() => this.setState({ resultsDisplay: DISPLAY_TYPE.JSON })}>
 									JSON Output</Nav.Link>
 							</Nav.Item>
 							<Nav.Item>
-								<Nav.Link onClick={() => this.setState({resultsDisplay: DISPLAY_TYPE.GRAPH})}>
+								<Nav.Link onClick={() => this.setState({ resultsDisplay: DISPLAY_TYPE.GRAPH })}>
 									Graph</Nav.Link>
 							</Nav.Item>
 							<Nav.Item>
-								<Nav.Link onClick={() => this.setState({resultsDisplay: DISPLAY_TYPE.AGGREGATE})}>
+								<Nav.Link onClick={() => this.setState({ resultsDisplay: DISPLAY_TYPE.AGGREGATE })}>
 									Aggregated</Nav.Link>
 							</Nav.Item>
 						</Nav>
@@ -253,13 +251,13 @@ class App extends Component {
 	jsonResults() {
 		return <div>
 			{this.state.results.connect ? <div><h3>Connect</h3>
-				{<ReactJsonSyntaxHighlighter obj={this.state.results.connect}/>} </div> : ""}
+				{<ReactJsonSyntaxHighlighter obj={this.state.results.connect} />} </div> : ""}
 			{this.state.results.collect ? <div className="json-display"><h3>Collect</h3>
-				{<ReactJsonSyntaxHighlighter obj={this.state.results.collect}/>}</div> : ""}
+				{<ReactJsonSyntaxHighlighter obj={this.state.results.collect} />}</div> : ""}
 			{this.state.results.disconnect ? <div><h3>Disconnect</h3>
-				{<ReactJsonSyntaxHighlighter obj={this.state.results.disconnect}/>} </div> : ""}
+				{<ReactJsonSyntaxHighlighter obj={this.state.results.disconnect} />} </div> : ""}
 			{this.state.results.config ?
-				<div><h3>Config</h3> {<ReactJsonSyntaxHighlighter obj={this.state.results.config}/>}
+				<div><h3>Config</h3> {<ReactJsonSyntaxHighlighter obj={this.state.results.config} />}
 				</div> : ""}
 		</div>;
 	}
@@ -267,9 +265,9 @@ class App extends Component {
 	graphResults() {
 		return <ChartContainer timeRange={this.state.results.activities.graphData.timerange()} width={1000}>
 			<ChartRow height="600">
-				<YAxis id="axis" label="Watt Hours" width="60" max={20000} type="linear"/>
+				<YAxis id="axis" label="Watt Hours" width="60" max={20000} type="linear" />
 				<Charts>
-					<LineChart axis="axis" series={this.state.results.activities.graphData} columns={["watts"]}/>
+					<LineChart axis="axis" series={this.state.results.activities.graphData} columns={["watts"]} />
 				</Charts>
 			</ChartRow>
 		</ChartContainer>
@@ -279,29 +277,20 @@ class App extends Component {
 	authForm() {
 		return <div className="auth-input panel panel-default">
 			<div className="panel-header">
-				<h1 style={{marginLeft: '10px'}}>Auth Input </h1>
+				<h1 style={{ marginLeft: '10px' }}>Auth Input </h1>
 			</div>
-			<hr/>
+			<hr />
 			<div className="panel-body">
-				{this.state.authType === AUTH_TYPE.MANUAL_AUTH ?
 					<Form>
 						<Form.Group>
 							<Form.Label>Username</Form.Label>
-							<Form.Control placeholder="Username" ref={this.authRefs.username}/>
+							<Form.Control placeholder="Username" ref={this.authRefs.username} />
 						</Form.Group>
-
 						<Form.Group>
 							<Form.Label>Password</Form.Label>
-							<Form.Control type="password" placeholder="Password" ref={this.authRefs.password}/>
+							<Form.Control type="password" placeholder="Password" ref={this.authRefs.password} />
 						</Form.Group>
-					</Form> : ""}
-				{this.state.authType === AUTH_TYPE.WEB_AUTH ?
-					<Form>
-						<Form.Group>
-							<Form.Label>Auth URL</Form.Label>
-							<Form.Control placeholder="www.google.com/oauth" ref={this.authRefs.url}/>
-						</Form.Group>
-					</Form> : ""}
+					</Form>
 			</div>
 		</div>
 	}
@@ -318,22 +307,22 @@ class App extends Component {
 						onClick={() => {
 							let integrations = this.state.integrations;
 							integrations.selected = i;
-							this.setState({integrations})
+							this.setState({ integrations })
 						}}>{i}</Dropdown.Item>)}
 				</Dropdown.Menu>
 			</Dropdown>
 			<Button variant="secondary" size="lg"
-			        onClick={() =>
-				        this.setState({code: this.state.integrations.all[this.state.integrations.selected]})}>
+				onClick={() =>
+					this.setState({ code: this.state.integrations.all[this.state.integrations.selected] })}>
 				Load </Button>
 			<Button variant="secondary" size="lg"
-			        onClick={() => {
-				        let integrations = this.state.integrations;
-				        integrations.view = this.state.integrations.all[this.state.integrations.selected];
-				        this.setState({integrations})
-			        }}> View </Button>
+				onClick={() => {
+					let integrations = this.state.integrations;
+					integrations.view = this.state.integrations.all[this.state.integrations.selected];
+					this.setState({ integrations })
+				}}> View </Button>
 			<Button variant="secondary" size="lg"
-			        onClick={() => this.setState({code: initialCode})}>Reset </Button>
+				onClick={() => this.setState({ code: initialCode })}>Reset </Button>
 		</div>
 	}
 
@@ -344,23 +333,23 @@ class App extends Component {
 			</Modal.Header>
 			<Modal.Body>
 				<pre>
-				<code>
-				{this.state.integrations.all[this.state.integrations.selected]}
-				</code>
+					<code>
+						{this.state.integrations.all[this.state.integrations.selected]}
+					</code>
 				</pre>
 			</Modal.Body>
 			<Modal.Footer>
 				<Button onClick={() => {
 					let integrations = this.state.integrations;
 					integrations.view = null;
-					this.setState({integrations})
+					this.setState({ integrations })
 				}}> Close </Button>
 			</Modal.Footer>
 		</Modal>)
 	}
 
 	environmentPanel() {
-		return <div className="panel panel-default env-input" style={{overflowY: 'scroll'}}>
+		return <div className="panel panel-default env-input" style={{ overflowY: 'scroll' }}>
 			<div className="panel-header">
 				<h1 className="title">Environment Variables &nbsp;
 					<Button onClick={() => this.addEnvInput()} size="lg" variant="secondary">Add</Button></h1>
@@ -368,11 +357,11 @@ class App extends Component {
 			<div className="panel-body">
 				{this.state.envRefList.map(e => <Form>
 					<Form.Group className="col-xs-6">
-						<Form.Control placeholder="Key" ref={e.key}/>
+						<Form.Control placeholder="Key" ref={e.key} />
 					</Form.Group>
 
 					<Form.Group className="col-xs-6">
-						<Form.Control placeholder="Value" ref={e.value}/>
+						<Form.Control placeholder="Value" ref={e.value} />
 					</Form.Group>
 				</Form>)}
 			</div>
@@ -385,7 +374,7 @@ class App extends Component {
 			key: React.createRef(),
 			value: React.createRef()
 		});
-		this.setState({envRefList});
+		this.setState({ envRefList });
 	}
 
 	aggregateResults() {
