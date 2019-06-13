@@ -10,7 +10,7 @@ import uuidv1 from 'uuid/v1';
 import { Documentation } from "./Documentation";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import {processActivities} from './ActivityProcessor';
+import { processActivities } from './ActivityProcessor';
 
 import { ExecutionResults } from './ExecutionResults';
 
@@ -64,15 +64,13 @@ class App extends Component {
 		code: null,
 		results: {},
 		envRefList: [],
-		injectState: {}
+		username: "",
+		password: "",
+		stateInjection: {},
+		integrations: {
+            all: {}, selected: ""
+        }
 	};
-
-	authRefs = {
-		username: React.createRef(),
-		password: React.createRef()
-	};
-
-	executionRef = React.createRef();
 
 	constructor(props) {
 		super(props);
@@ -101,7 +99,6 @@ class App extends Component {
 			(code) => this.setState({ code: code !== null ? code : initialCode }));
 		socket.on('evaluation-error',
 			(error) => {
-				console.log(error, 'test');
 				toast.error(Object.keys(error).length > 0 ? JSON.stringify(error) :
 					'An Error occurred, but no error message could be retrieved')
 			});
@@ -121,8 +118,12 @@ class App extends Component {
 				{this.authForm()}
 				{this.environmentPanel()}
 
-				<ExecutionResults results={this.state.results} />
-				<Documentation/>
+				<ExecutionResults results={this.state.results}
+					interpretJS={this.interpretJS}
+					integrations={this.state.integrations}
+					authDetails={{username: this.state.username, 
+						password: this.state.password}} />
+				<Documentation />
 				<ToastContainer style={{ width: '40%', fontSize: '25pt' }} />
 
 				{this.state.code === null ? <h1>Fetching Code</h1> :
@@ -150,17 +151,13 @@ class App extends Component {
 			this.setState({ previousRuns });
 		}
 
-		let authDetails = { 
-			authType: this.state.authType,
-			username: this.authRefs.username.current.value,
-			password: this.authRefs.password.current.value
-		 };
+		let authDetails = {
+			username: this.state.username,
+			password:  this.state.password
+		};
 
-		cookies.set('username', this.authRefs.username.current.value);
-		cookies.set('password', this.authRefs.password.current.value);
-		authDetails.username = this.authRefs.username.current.value;
-		authDetails.password = this.authRefs.password.current.value;
-
+		cookies.set('username', this.state.username);
+		cookies.set('password', this.state.password);
 
 		evaluateCode(this.state.code, authDetails, getEnvAsObject(this.state.envRefList),
 			id, this.state.injectState);
@@ -183,11 +180,13 @@ class App extends Component {
 				<Form>
 					<Form.Group>
 						<Form.Label>Username</Form.Label>
-						<Form.Control placeholder="Username" ref={this.authRefs.username} />
+						<Form.Control placeholder="Username"
+							onChange={(v) => this.setState({username: v.target.value})}/>
 					</Form.Group>
 					<Form.Group>
 						<Form.Label>Password</Form.Label>
-						<Form.Control type="password" placeholder="Password" ref={this.authRefs.password} />
+						<Form.Control type="password" placeholder="Password"
+							onChange={(v) => this.setState({ password: v.target.value})} />
 					</Form.Group>
 				</Form>
 			</div>

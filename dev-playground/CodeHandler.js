@@ -93,7 +93,7 @@ async function assessFunctions(stub, authDetails, stateInjection) {
 	console.log('Assessing Functions');
 
 	try {
-		if (Object.keys(stateInjection).length > 0) {
+		if (stateInjection && Object.keys(stateInjection).length > 0) {
 			console.log('Injecting state', stateInjection);
 			server.emitResults(await {
 				connect: {},
