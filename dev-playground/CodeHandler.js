@@ -127,9 +127,6 @@ async function assessFunctions(stub, authDetails, stateInjection) {
 	}
 }
 
-const modelActivities = (activities) =>
-	activities.map(a => models.transport.carbonEmissions(a))
-
 function readCode(id) {
 	let code = null;
 
@@ -140,7 +137,6 @@ function readCode(id) {
 }
 
 function sendError(error) {
-	console.log("]");
 	console.log('Error whilst processing code', error);
 	server.emitError(error);
 }

@@ -11,7 +11,7 @@ import { Documentation } from "./Documentation";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { processActivities } from './ActivityProcessor';
-
+import INITIAL_CODE from './Constants';
 import { ExecutionResults } from './ExecutionResults';
 import { IntegrationSelect } from './IntegrationSelect';
 
@@ -26,36 +26,6 @@ const editorOptions = {
 const cookies = new Cookies();
 
 const id = cookies.get('id') !== undefined ? cookies.get('id') : uuidv1();
-
-export const initialCode =
-	`//Parameters must be methods
-async function connect(requestLogin, requestWebView) {
-  const { username, password } = await requestLogin();
-
-  return {
-    username,
-    password,
-  };
-}
-
-//Clear state after completion, this can often be left empty
-function disconnect() {
-  return {};
-}
-
-//Using State retrieved from login fetch data 
-async function collect(state, { logWarning }) {
-  return { activities: [], state };
-}
-
-//Configure how your integration is displayed
-const config = {
-  label: '',
-  description: '',
-  country: '', //i.e. DK, UK, etc
-  isPrivate: true,
-  type: null,
-};`;
 
 const NODE_PORT = 3001;
 
@@ -74,8 +44,16 @@ class App extends Component {
 	constructor(props) {
 		super(props);
 		if (cookies.get('id') === undefined) cookies.set('id', id);
+ 
 		const setCode = (code) => this.setState({ code });
 		this.setCode = setCode.bind(this);
+
+		const setStateInjection = (stateInjection) => {
+			this.setState({ stateInjection });
+			console.log(stateInjection)
+		} 
+		this.setStateInjection = setStateInjection.bind(this);
+
 		this.interpretJS = this.interpretJS.bind(this);
 		this.setupSocket();
 	}
@@ -100,7 +78,7 @@ class App extends Component {
 				this.setState({ results });
 			});
 		socket.on('setCode',
-			(code) => this.setState({ code: code !== null ? code : initialCode }));
+			(code) => this.setState({ code: code !== null ? code : INITIAL_CODE }));
 		socket.on('evaluation-error',
 			(error) => {
 				toast.error(Object.keys(error).length > 0 ? JSON.stringify(error) :
@@ -128,8 +106,12 @@ class App extends Component {
 				<ExecutionResults results={this.state.results}
 					interpretJS={this.interpretJS}
 					integrations={this.state.integrations}
-					authDetails={{username: this.state.username, 
-						password: this.state.password}} />
+					authDetails={{
+						username: this.state.username,
+						password: this.state.password
+					}}
+					setStateInjection={this.setStateInjection}
+				/>
 				<Documentation/>
 				<ToastContainer style={{ width: '40%', fontSize: '25pt' }} />
 
@@ -165,11 +147,9 @@ class App extends Component {
 
 		cookies.set('username', this.state.username);
 		cookies.set('password', this.state.password);
-		
-		console.log(authDetails)
 
 		evaluateCode(this.state.code, authDetails, getEnvAsObject(this.state.envRefList),
-			id, this.state.injectState);
+			id, this.state.stateInjection);
 
 		function getEnvAsObject(refs) {
 			let obj = {};
