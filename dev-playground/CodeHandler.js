@@ -77,7 +77,7 @@ function objectToCode(env) {
 }
 
 async function assessFunctions(stub, authDetails, stateInjection) {
-	const requestLogin = authDetails.username && authDetails.password ? () => {
+	const requestLogin = authDetails.username !== null && authDetails.password !== null ? () => {
 		return { username: authDetails.username, password: authDetails.password }
 	} : () => { };
 

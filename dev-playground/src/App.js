@@ -13,6 +13,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { processActivities } from './ActivityProcessor';
 
 import { ExecutionResults } from './ExecutionResults';
+import { IntegrationSelect } from './IntegrationSelect';
 
 const editorOptions = {
 	selectOnLineNumbers: true,
@@ -67,18 +68,21 @@ class App extends Component {
 		username: "",
 		password: "",
 		stateInjection: {},
-		integrations: {
-            all: {}, selected: ""
-        }
+		integrations: null
 	};
 
 	constructor(props) {
 		super(props);
 		if (cookies.get('id') === undefined) cookies.set('id', id);
-
+		const setCode = (code) => this.setState({ code });
+		this.setCode = setCode.bind(this);
 		this.interpretJS = this.interpretJS.bind(this);
+		this.setupSocket();
+	}
 
-		const socket = io('http://' + window.location.hostname + ':' + NODE_PORT, { query: 'name=' + id });
+	setupSocket() {
+		const socket = io('http://' + window.location.hostname + ':' + NODE_PORT,
+			{ query: 'name=' + id });
 		socket.on('setIntegrations',
 			(integrations) => this.setState({
 				integrations: {
@@ -118,12 +122,15 @@ class App extends Component {
 				{this.authForm()}
 				{this.environmentPanel()}
 
+				{this.state.integrations !== null ?
+					<IntegrationSelect integrations={this.state.integrations.all}
+						setCode={this.setCode}/> : ""}
 				<ExecutionResults results={this.state.results}
 					interpretJS={this.interpretJS}
 					integrations={this.state.integrations}
 					authDetails={{username: this.state.username, 
 						password: this.state.password}} />
-				<Documentation />
+				<Documentation/>
 				<ToastContainer style={{ width: '40%', fontSize: '25pt' }} />
 
 				{this.state.code === null ? <h1>Fetching Code</h1> :
@@ -158,6 +165,8 @@ class App extends Component {
 
 		cookies.set('username', this.state.username);
 		cookies.set('password', this.state.password);
+		
+		console.log(authDetails)
 
 		evaluateCode(this.state.code, authDetails, getEnvAsObject(this.state.envRefList),
 			id, this.state.injectState);
