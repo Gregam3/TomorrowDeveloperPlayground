@@ -100,9 +100,9 @@ class App extends Component {
 				{this.authForm()}
 				{this.environmentPanel()}
 
-				{this.state.integrations !== null ?
+				{this.state.integrations !== null &&
 					<IntegrationSelect integrations={this.state.integrations.all}
-						setCode={this.setCode}/> : ""}
+						setCode={this.setCode}/>}
 				<ExecutionResults results={this.state.results}
 					interpretJS={this.interpretJS}
 					integrations={this.state.integrations}
@@ -185,7 +185,7 @@ class App extends Component {
 	environmentPanel() {
 		return <div className="panel panel-default env-input" style={{ overflowY: 'scroll' }}>
 			<div className="panel-header">
-				<h1 className="title">Environment Variables &nbsp;
+				<h1 className="title">Env Variables &nbsp;
 					<Button onClick={() => this.addEnvInput()} size="lg" variant="secondary">Add</Button></h1>
 			</div>
 			<div className="panel-body">

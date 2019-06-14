@@ -107,19 +107,18 @@ async function assessFunctions(stub, authDetails, stateInjection) {
 			const connectResult = await stub.connect(requestLogin, requestWebView);
 			const collectResult = await stub.collect(connectResult,
 				{ logWarning: (err) => console.log(err) });
-			
+
 			server.emitResults(await {
 				connect: connectResult,
 				collect: collectResult,
 				disconnect: await stub.disconnect(),
 				config: stub.config,
 				modelledActivities:
-					collectResult.activities.map(a => {
-						if(a.activityType.includes('TRANSPORT')) 
-							return models.transport.carbonIntensity(a);
-						//https://www.rensmart.com/Calculators/KWH-to-CO2 temporary
-						else return a.energyWattHours * 0.00028307
-					}) 
+					collectResult.activities.map(a => 
+						a.activityType.includes('TRANSPORT') ?
+							models.transport.carbonIntensity(a) :
+							//https://www.rensmart.com/Calculators/KWH-to-CO2 temporary
+							a.energyWattHours * 0.00028307)
 			});
 		}
 	} catch (e) {
