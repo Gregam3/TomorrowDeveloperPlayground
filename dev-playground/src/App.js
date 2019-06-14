@@ -14,6 +14,11 @@ import { processActivities } from './ActivityProcessor';
 import INITIAL_CODE from './Constants';
 import { ExecutionResults } from './ExecutionResults';
 import { IntegrationSelect } from './IntegrationSelect';
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { faCog, faPlus, faPlay, faQuestionCircle, faTree, faLock, faCodeBranch, faPoll } from '@fortawesome/free-solid-svg-icons';
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+
+library.add(faCog, faPlus, faPlay, faQuestionCircle, faTree, faLock, faCodeBranch, faPoll);
 
 const editorOptions = {
 	selectOnLineNumbers: true,
@@ -162,7 +167,7 @@ class App extends Component {
 	authForm() {
 		return <div className="auth-input panel panel-default">
 			<div className="panel-header">
-				<h1 style={{ marginLeft: '10px' }}>Auth Input </h1>
+				<h1 style={{ marginLeft: '10px' }}><FontAwesomeIcon icon="lock"/>&nbsp;Auth Input </h1>
 			</div>
 			<hr />
 			<div className="panel-body">
@@ -185,8 +190,9 @@ class App extends Component {
 	environmentPanel() {
 		return <div className="panel panel-default env-input" style={{ overflowY: 'scroll' }}>
 			<div className="panel-header">
-				<h1 className="title">Env Variables &nbsp;
-					<Button onClick={() => this.addEnvInput()} size="lg" variant="secondary">Add</Button></h1>
+				<h1 className="title"><FontAwesomeIcon icon="tree"/>&nbsp; Env Variables &nbsp;
+					<Button onClick={() => this.addEnvInput()} size="lg" variant="secondary">
+					<FontAwesomeIcon icon="plus" /></Button></h1>
 			</div>
 			<div className="panel-body">
 				{this.state.envRefList.map(e => <Form>

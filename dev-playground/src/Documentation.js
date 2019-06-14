@@ -1,5 +1,6 @@
 import React, {Component} from "react";
-import {Button, Modal} from "react-bootstrap";
+import { Button, Modal } from "react-bootstrap";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 
 export class Documentation extends Component {
 
@@ -9,7 +10,8 @@ export class Documentation extends Component {
 
 	render() {
 		return <div className="panel panel-default documentation">
-			<div className="panel-header"><h1 className="title">Using the Playground</h1></div>
+			<div className="panel-header"><h1 className="title"><FontAwesomeIcon icon="question-circle"/>
+				&nbsp; Using the Playground</h1></div>
 			<div className="panel-body">
 				<h3>Basics</h3>
 				<p>Either paste or write your code in the above editor, your code must implement the
