@@ -25,7 +25,7 @@ const editorOptions = {
 	autoIndent: true,
 	colorDecorators: true,
 	copyWithSyntaxHighlighting: true,
-	fontSize: 18
+	fontSize: 14
 };
 
 const cookies = new Cookies();
@@ -61,6 +61,16 @@ class App extends Component {
 
 		this.interpretJS = this.interpretJS.bind(this);
 		this.setupSocket();
+	}
+
+	resize = () => this.forceUpdate()
+
+	componentDidMount() {
+		window.addEventListener('resize', this.resize)
+	}
+
+	componentWillUnmount() {
+		window.removeEventListener('resize', this.resize)
 	}
 
 	setupSocket() {
@@ -122,8 +132,8 @@ class App extends Component {
 
 				{this.state.code === null ? <h1>Fetching Code</h1> :
 					<MonacoEditor
-						height="850"
-						width="1300"
+						height={window.innerHeight * 0.65}
+						width={window.innerWidth * 0.6}
 						language="javascript"
 						theme="vs-light"
 						value={this.state.code}
@@ -167,11 +177,11 @@ class App extends Component {
 	authForm() {
 		return <div className="auth-input panel panel-default">
 			<div className="panel-header">
-				<h1 style={{ marginLeft: '10px' }}><FontAwesomeIcon icon="lock"/>&nbsp;Auth Input </h1>
+				<h3 style={{ marginLeft: '10px' }}>
+					<FontAwesomeIcon icon="lock" />&nbsp;Auth Input </h3>
 			</div>
-			<hr />
 			<div className="panel-body">
-				<Form>
+				<Form style={{ fontSize: 14 }}>
 					<Form.Group>
 						<Form.Label>Username</Form.Label>
 						<Form.Control placeholder="Username"
@@ -190,9 +200,9 @@ class App extends Component {
 	environmentPanel() {
 		return <div className="panel panel-default env-input" style={{ overflowY: 'scroll' }}>
 			<div className="panel-header">
-				<h1 className="title"><FontAwesomeIcon icon="tree"/>&nbsp; Env Variables &nbsp;
-					<Button onClick={() => this.addEnvInput()} size="lg" variant="secondary">
-					<FontAwesomeIcon icon="plus" /></Button></h1>
+				<label className="title"><FontAwesomeIcon icon="tree"/>&nbsp; Environment Variables &nbsp;
+					<Button onClick={() => this.addEnvInput()} variant="secondary">
+					<FontAwesomeIcon icon="plus" /></Button></label>
 			</div>
 			<div className="panel-body">
 				{this.state.envRefList.map(e => <Form>
