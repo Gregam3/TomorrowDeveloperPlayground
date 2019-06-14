@@ -7,13 +7,13 @@ import { evaluateCode } from "./RequestManager";
 import Cookies from 'universal-cookie';
 import io from "socket.io-client";
 import uuidv1 from 'uuid/v1';
-import { Documentation } from "./Documentation";
+import { Documentation } from "./DocumentationPanel";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { processActivities } from './ActivityProcessor';
 import INITIAL_CODE from './Constants';
-import { ExecutionResults } from './ExecutionResults';
-import { IntegrationSelect } from './IntegrationSelect';
+import { ExecutionResults } from './ExecutionResultsPanel';
+import { IntegrationSelect } from './IntegrationSelectPanel';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { faCog, faPlus, faPlay, faQuestionCircle, faTree, faLock, faCodeBranch, faPoll } from '@fortawesome/free-solid-svg-icons';
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
@@ -63,6 +63,8 @@ class App extends Component {
 		this.setupSocket();
 	}
 
+	//Used as MonacoEditor's size is not based on CSS, so render must be called in order
+	//for the element to scale.
 	resize = () => this.forceUpdate()
 
 	componentDidMount() {

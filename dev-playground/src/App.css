@@ -30,9 +30,9 @@
 .auth-input {
     position: absolute;
     left: 15.5%;
-    top: 75%;
+    top: 73%;
     width: 9%;
-    height: 24%;
+    height: 26%;
     font-size: 20px
 }
 
@@ -48,9 +48,9 @@
 .documentation {
     position: absolute;
     left: 25%;
-    top: 75%;
+    top: 73%;
     width: 35%;
-    height: 24%;
+    height: 26%;
     font-size: 16px;
     overflow-y: scroll;
 }
