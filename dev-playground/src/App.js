@@ -17,13 +17,14 @@ import { IntegrationSelect } from './IntegrationSelectPanel';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import {
 	faCog, faPlus, faPlay, faQuestionCircle, faTree, faLock, faCodeBranch, faPoll,
-	faTerminal
+	faTerminal 
 } from '@fortawesome/free-solid-svg-icons';
+import { faGithub } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { LogPanel } from './LogPanel';
 
 library.add(faCog, faPlus, faPlay, faQuestionCircle, faTree, faLock, faCodeBranch, faPoll,
-	faTerminal);
+	faTerminal, faGithub);
 
 const editorOptions = {
 	selectOnLineNumbers: true,
@@ -98,7 +99,7 @@ class App extends Component {
 				toast.success('Results Updated', { autoClose: 2000 });
 				console.log(results)
 				results.activities = processActivities(results.collect.activities);
-				this.setState({ results, logs: results.logs });
+				this.setState({ results, logs: (results.logs) ? results.logs : [] });
 			});
 		socket.on('setCode',
 			(code) => this.setState({ code: code !== null ? code : INITIAL_CODE }));

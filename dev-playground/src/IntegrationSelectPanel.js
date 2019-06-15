@@ -4,6 +4,7 @@ import App from "./App";
 import INITIAL_CODE from './Constants';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
+
 export class IntegrationSelect extends Component {
 
     constructor(props) {
@@ -42,7 +43,6 @@ export class IntegrationSelect extends Component {
                     Currently selected: <div style={{color: 'red', fontWeight: 'bold'}}>
                     {this.state.integrations.selected ? this.state.integrations.selected : "None"}
                     </div>
-                    <br />
 
                     <Button variant="secondary"
                         onClick={() =>
@@ -56,6 +56,9 @@ export class IntegrationSelect extends Component {
                             console.log(App)
                             this.setCode(INITIAL_CODE)
                         }}>Reset </Button>
+                     <Button variant="secondary"
+                        onClick={() => window.open('https://github.com/tmrowco/tmrowapp-contrib')}>
+                        <FontAwesomeIcon icon={["fab", "github"]} size="lg" /> </Button>
                 </div>
             </div>
         </div>

@@ -21,6 +21,12 @@ export class Documentation extends Component {
 					If you do not see these already hit the Reset button.
 					When you're ready hit the run button and wait for results to come back. It it recommended you
 					browse some currently working integrations (using the drop down) before writing your own.</p>
+				<label>Logging</label>
+				<p>In order to log to the Execution logs panel seen in the bottom left you'll need to add this import 
+					<code>import logger from '../../Logger'</code>. You can then use <code>logger.log('level', 'message')</code>
+					to log your code. Levels are <b className="log-demo log-info">info</b>,
+					<b className="log-demo log-debug">debug</b>, <b className="log-demo log-warning">warning</b>
+					and <b className="log-demo log-error">error</b>. You can also parse objects into here and they'll be stringified</p>
 				<label>Importing Externally</label>
 				<p>We have a number of libraries pre-installed and you can import them
 					as normal. Some of these libraries include: <code>superagent</code>,

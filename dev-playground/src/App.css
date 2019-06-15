@@ -69,11 +69,19 @@
     margin-left: 10px
 }
 
+.log-demo {
+    background-color: black;
+}
+
 .log-info {
     color: white
 }
 
 .log-debug {
+    color: green;
+}
+
+.log-warning {
     color: yellow
 }
 

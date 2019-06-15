@@ -95,12 +95,21 @@ async function assessFunctions(stub, authDetails, stateInjection) {
 	try {
 		if (stateInjection && Object.keys(stateInjection).length > 0) {
 			console.log('Injecting state', stateInjection);
+
+			const collectResult = await stub.collect(stateInjection,
+				{ logWarning: (err) => console.log(err) });
 			server.emitResults(await {
 				connect: {},
-				collect: await stub.collect(stateInjection,
-					{ logWarning: (err) => console.log(err) }),
+				collect: collectResult,
 				disconnect: {},
-				config: stub.config
+				config: stub.config,
+				modelledActivities:
+					collectResult.activities.map(a => 
+						a.activityType.includes('TRANSPORT') ?
+							models.transport.carbonIntensity(a) :
+							//https://www.rensmart.com/Calculators/KWH-to-CO2 temporary
+							a.energyWattHours * 0.00028307),
+				logs: logs.popLogs()
 			});
 		} else {
 			console.log('No state injection found, executing normally.');
@@ -128,10 +137,12 @@ async function assessFunctions(stub, authDetails, stateInjection) {
 }
 
 function readCode(id) {
+	console.log('Fetching last execution')
 	let code = null;
 
 	if (fs.existsSync('./integration-test/' + id))
 		code = fs.readFileSync('./integration-test/' + id + '/integration.js').toString()
+			//Exports added on file write, removed to avoid duplication
 			.replace('export {connect,collect,disconnect,config};', '');
 	return code;
 }

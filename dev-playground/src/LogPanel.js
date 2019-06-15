@@ -28,7 +28,7 @@ export class LogPanel extends Component {
             <div className="panel-body">
                 <div style={{
                     backgroundColor: 'black',
-                    position: 'absolute', height: '67%', width: '90%',
+                    position: 'absolute', height: '67%', width: '95%',
                     fontFamily: 'Ubuntu', color: 'white', fontWeight: 'bold',
                     overflowX: 'scroll', fontSize: 12
                 }}>

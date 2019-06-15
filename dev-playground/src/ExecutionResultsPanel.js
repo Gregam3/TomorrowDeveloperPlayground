@@ -5,7 +5,7 @@ import locale from 'react-json-editor-ajrm/locale/en';
 import ReactJsonSyntaxHighlighter from 'react-json-syntax-highlighter';
 import { Charts, ChartContainer, ChartRow, YAxis, LineChart } from "react-timeseries-charts";
 import { TimeSeries, TimeRange } from "pondjs";
-import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const DISPLAY_TYPE = {
     JSON: 0,
@@ -45,11 +45,11 @@ export class ExecutionResults extends Component {
             <div className="test-results panel panel-default">
                 <div className="panel-header" style={{ marginLeft: '10px' }}>
                     <h3><FontAwesomeIcon icon="poll" />&nbsp;
-                    Results <Button variant="secondary" 
-                        onClick={() => this.interpretJS()}> <FontAwesomeIcon icon="play" /> Execute </Button>
+                    Results <Button variant="secondary"
+                            onClick={() => this.interpretJS()}> <FontAwesomeIcon icon="play" /> Execute </Button>
                         <Button variant="secondary"
                             onClick={() => this.setState({ configureRunModal: true })}>
-                            <FontAwesomeIcon icon="cog"/> </Button></h3>
+                            <FontAwesomeIcon icon="cog" /> </Button></h3>
                     {this.state.integrations && this.state.integrations.view ? this.viewIntegrationModal() : ""}
 
                 </div>
@@ -62,7 +62,7 @@ export class ExecutionResults extends Component {
                                     <Nav.Link onClick={() => this.setState({ resultsDisplay: DISPLAY_TYPE.JSON })}>
                                         JSON Output</Nav.Link>
                                 </Nav.Item>
-                                <Nav.Item>
+                               <Nav.Item>
                                     <Nav.Link onClick={() => this.setState({ resultsDisplay: DISPLAY_TYPE.GRAPH })}>
                                         Graph</Nav.Link>
                                 </Nav.Item>
@@ -86,9 +86,9 @@ export class ExecutionResults extends Component {
             {this.state.results.connect && <div><h3>Connect</h3>
                 {<ReactJsonSyntaxHighlighter obj={this.state.results.connect} />} </div>}
             {this.state.results.collect && <div className="json-display"><h3>Collect</h3>
-                {<ReactJsonSyntaxHighlighter obj={this.state.results.collect} />}</div> }
+                {<ReactJsonSyntaxHighlighter obj={this.state.results.collect} />}</div>}
             {this.state.results.disconnect && <div><h3>Disconnect</h3>
-                {<ReactJsonSyntaxHighlighter obj={this.state.results.disconnect} />} </div> }
+                {<ReactJsonSyntaxHighlighter obj={this.state.results.disconnect} />} </div>}
             {this.state.results.config &&
                 <div><h3>Config</h3> {<ReactJsonSyntaxHighlighter obj={this.state.results.config} />}
                 </div>}
@@ -96,14 +96,15 @@ export class ExecutionResults extends Component {
     }
 
     graphResults() {
-        return <ChartContainer timeRange={this.state.results.activities.graphData.timerange()} width={1000}>
+        console.log(this.state.results.activities)
+        return this.state.results.activities && this.state.results.modelledActivities.length > 0 ? <ChartContainer timeRange={this.state.results.activities.graphData.timerange()} width={1000}>
             <ChartRow height="600">
                 <YAxis id="axis" label="Watt Hours" width="60" max={20000} type="linear" />
                 <Charts>
                     <LineChart axis="axis" series={this.state.results.activities.graphData} columns={["watts"]} />
                 </Charts>
             </ChartRow>
-        </ChartContainer>
+        </ChartContainer> : <h3>Activities must be present to render graph</h3>
     }
 
     aggregateResults() {
@@ -136,7 +137,7 @@ export class ExecutionResults extends Component {
 
     configureRunModal() {
         return (<Modal animation={false} show={this.state.configureRunModal} size="lg">
-            <Modal.Header closeButton>
+            <Modal.Header>
                 <Modal.Title><h1>Configure run</h1></Modal.Title>
             </Modal.Header>
             <Modal.Body>
@@ -152,12 +153,12 @@ export class ExecutionResults extends Component {
             <Modal.Footer>
                 <Button variant="secondary" size="lg"
                     onClick={() => {
-                    this.setState({
-                        configureRunModal: false,
-                        stateInjection: isJson(this.temporaryStateInjection) ? JSON.parse(this.temporaryStateInjection) : {}
-                    })
-                    this.setStateInjection(this.state.stateInjection)
-                }}> Save and Close </Button>
+                        this.setState({
+                            configureRunModal: false,
+                            stateInjection: isJson(this.temporaryStateInjection) ? JSON.parse(this.temporaryStateInjection) : {}
+                        })
+                        this.setStateInjection(this.state.stateInjection)
+                    }}> Save and Close </Button>
             </Modal.Footer>
         </Modal>)
 
