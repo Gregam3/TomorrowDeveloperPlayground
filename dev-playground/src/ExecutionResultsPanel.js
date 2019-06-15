@@ -32,15 +32,11 @@ export class ExecutionResults extends Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        this.propsToState(nextProps);
-    }
-
-    propsToState(props) {
         this.authDetails = {
-            username: props.authDetails.username,
-            password: props.authDetails.password
+            username: nextProps.authDetails.username,
+            password: nextProps.authDetails.password
         }
-        this.setState({ results: props.results });
+        this.setState({ results: nextProps.results });
     }
 
     render() {

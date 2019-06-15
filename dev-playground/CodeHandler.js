@@ -1,5 +1,5 @@
 const server = require("./server");
-
+const logs = require("./Logger")
 const fs = require('fs');
 const definitions = require('../tmrowapp-contrib/definitions');
 const models = {
@@ -118,7 +118,8 @@ async function assessFunctions(stub, authDetails, stateInjection) {
 						a.activityType.includes('TRANSPORT') ?
 							models.transport.carbonIntensity(a) :
 							//https://www.rensmart.com/Calculators/KWH-to-CO2 temporary
-							a.energyWattHours * 0.00028307)
+							a.energyWattHours * 0.00028307),
+				logs: logs.popLogs()
 			});
 		}
 	} catch (e) {

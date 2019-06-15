@@ -29,7 +29,7 @@
 
 .auth-input {
     position: absolute;
-    left: 15.5%;
+    left: 21.5%;
     top: 73%;
     width: 9%;
     height: 26%;
@@ -47,9 +47,19 @@
 
 .documentation {
     position: absolute;
-    left: 25%;
+    left: 31%;
     top: 73%;
-    width: 35%;
+    width: 28%;
+    height: 26%;
+    font-size: 16px;
+    overflow-y: scroll;
+}
+
+.log {
+    position: absolute;
+    left: 1%;
+    top: 73%;
+    width: 20%;
     height: 26%;
     font-size: 16px;
     overflow-y: scroll;
@@ -59,7 +69,14 @@
     margin-left: 10px
 }
 
-.test {
-    font-size: 25pt;
+.log-info {
+    color: white
 }
 
+.log-debug {
+    color: yellow
+}
+
+.log-error {
+    color: red
+}

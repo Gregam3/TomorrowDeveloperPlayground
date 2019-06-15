@@ -15,10 +15,15 @@ import INITIAL_CODE from './Constants';
 import { ExecutionResults } from './ExecutionResultsPanel';
 import { IntegrationSelect } from './IntegrationSelectPanel';
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { faCog, faPlus, faPlay, faQuestionCircle, faTree, faLock, faCodeBranch, faPoll } from '@fortawesome/free-solid-svg-icons';
-import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {
+	faCog, faPlus, faPlay, faQuestionCircle, faTree, faLock, faCodeBranch, faPoll,
+	faTerminal
+} from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { LogPanel } from './LogPanel';
 
-library.add(faCog, faPlus, faPlay, faQuestionCircle, faTree, faLock, faCodeBranch, faPoll);
+library.add(faCog, faPlus, faPlay, faQuestionCircle, faTree, faLock, faCodeBranch, faPoll,
+	faTerminal);
 
 const editorOptions = {
 	selectOnLineNumbers: true,
@@ -43,20 +48,21 @@ class App extends Component {
 		username: "",
 		password: "",
 		stateInjection: {},
-		integrations: null
+		integrations: null,
+		logs: []
 	};
 
 	constructor(props) {
 		super(props);
 		if (cookies.get('id') === undefined) cookies.set('id', id);
- 
+
 		const setCode = (code) => this.setState({ code });
 		this.setCode = setCode.bind(this);
 
 		const setStateInjection = (stateInjection) => {
 			this.setState({ stateInjection });
 			console.log(stateInjection)
-		} 
+		}
 		this.setStateInjection = setStateInjection.bind(this);
 
 		this.interpretJS = this.interpretJS.bind(this);
@@ -92,7 +98,7 @@ class App extends Component {
 				toast.success('Results Updated', { autoClose: 2000 });
 				console.log(results)
 				results.activities = processActivities(results.collect.activities);
-				this.setState({ results });
+				this.setState({ results, logs: results.logs });
 			});
 		socket.on('setCode',
 			(code) => this.setState({ code: code !== null ? code : INITIAL_CODE }));
@@ -101,6 +107,7 @@ class App extends Component {
 				toast.error(Object.keys(error).length > 0 ? JSON.stringify(error) :
 					'An Error occurred, but no error message could be retrieved')
 			});
+		socket.on('setLogs', (logs) => console.log(logs))
 	}
 
 	render() {
@@ -119,7 +126,7 @@ class App extends Component {
 
 				{this.state.integrations !== null &&
 					<IntegrationSelect integrations={this.state.integrations.all}
-						setCode={this.setCode}/>}
+						setCode={this.setCode} />}
 				<ExecutionResults results={this.state.results}
 					interpretJS={this.interpretJS}
 					integrations={this.state.integrations}
@@ -129,7 +136,8 @@ class App extends Component {
 					}}
 					setStateInjection={this.setStateInjection}
 				/>
-				<Documentation/>
+				<LogPanel logs={this.state.logs}/>
+				<Documentation />
 				<ToastContainer style={{ width: '40%', fontSize: '25pt' }} />
 
 				{this.state.code === null ? <h1>Fetching Code</h1> :
@@ -159,7 +167,7 @@ class App extends Component {
 
 		let authDetails = {
 			username: this.state.username,
-			password:  this.state.password
+			password: this.state.password
 		};
 
 		cookies.set('username', this.state.username);
@@ -187,12 +195,12 @@ class App extends Component {
 					<Form.Group>
 						<Form.Label>Username</Form.Label>
 						<Form.Control placeholder="Username"
-							onChange={(v) => this.setState({username: v.target.value})}/>
+							onChange={(v) => this.setState({ username: v.target.value })} />
 					</Form.Group>
 					<Form.Group>
 						<Form.Label>Password</Form.Label>
 						<Form.Control type="password" placeholder="Password"
-							onChange={(v) => this.setState({ password: v.target.value})} />
+							onChange={(v) => this.setState({ password: v.target.value })} />
 					</Form.Group>
 				</Form>
 			</div>
@@ -202,9 +210,9 @@ class App extends Component {
 	environmentPanel() {
 		return <div className="panel panel-default env-input" style={{ overflowY: 'scroll' }}>
 			<div className="panel-header">
-				<label className="title"><FontAwesomeIcon icon="tree"/>&nbsp; Environment Variables &nbsp;
+				<label className="title"><FontAwesomeIcon icon="tree" />&nbsp; Environment Variables &nbsp;
 					<Button onClick={() => this.addEnvInput()} variant="secondary">
-					<FontAwesomeIcon icon="plus" /></Button></label>
+						<FontAwesomeIcon icon="plus" /></Button></label>
 			</div>
 			<div className="panel-body">
 				{this.state.envRefList.map(e => <Form>

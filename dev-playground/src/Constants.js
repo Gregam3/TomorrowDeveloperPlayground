@@ -1,7 +1,12 @@
 const INITIAL_CODE =
-	`//Parameters must be methods
+  `import logger from '../../Logger';
+
+//Parameters must be methods
 async function connect(requestLogin, requestWebView) {
   const { username, password } = await requestLogin();
+
+  logger.log('info', 'hello world')
+  logger.log('debug', {username, password})
 
   return {
     username,
