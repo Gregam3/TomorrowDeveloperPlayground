@@ -62,7 +62,7 @@ export class ExecutionResults extends Component {
                                     <Nav.Link onClick={() => this.setState({ resultsDisplay: DISPLAY_TYPE.JSON })}>
                                         JSON Output</Nav.Link>
                                 </Nav.Item>
-                               <Nav.Item>
+                                <Nav.Item>
                                     <Nav.Link onClick={() => this.setState({ resultsDisplay: DISPLAY_TYPE.GRAPH })}>
                                         Graph</Nav.Link>
                                 </Nav.Item>
@@ -147,18 +147,16 @@ export class ExecutionResults extends Component {
                     locale={locale}
                     placeholder={this.state.stateInjection}
                     height='120px'
-                    onChange={(v) => this.temporaryStateInjection = v.json}
+                    onChange={(v) => {
+                        this.temporaryStateInjection =
+                            isJson(v.json) ? JSON.parse(v.json) : {}
+                        this.setStateInjection(this.temporaryStateInjection)
+                    }}
                 />
             </Modal.Body>
             <Modal.Footer>
                 <Button variant="secondary" size="lg"
-                    onClick={() => {
-                        this.setState({
-                            configureRunModal: false,
-                            stateInjection: isJson(this.temporaryStateInjection) ? JSON.parse(this.temporaryStateInjection) : {}
-                        })
-                        this.setStateInjection(this.state.stateInjection)
-                    }}> Save and Close </Button>
+                    onClick={() => this.setState({ configureRunModal: false })}> Close </Button>
             </Modal.Footer>
         </Modal>)
 

@@ -25,7 +25,7 @@ export class IntegrationSelect extends Component {
             <div className="panel panel-default integrations">
                 <div className="panel-header"><label className="title">
                     <FontAwesomeIcon icon="code-branch" />&nbsp;Integrations</label>
-                    <Dropdown style={{ float: "right"}}>
+                    <Dropdown style={{ float: "right" }}>
                         <Dropdown.Toggle variant="secondary">Select</Dropdown.Toggle>
 
                         <Dropdown.Menu>
@@ -40,8 +40,8 @@ export class IntegrationSelect extends Component {
                 </div>
                 <div className="panel-body">
 
-                    Currently selected: <div style={{color: 'red', fontWeight: 'bold'}}>
-                    {this.state.integrations.selected ? this.state.integrations.selected : "None"}
+                    Currently selected: <div style={{ color: 'red', fontWeight: 'bold' }}>
+                        {this.state.integrations.selected ? this.state.integrations.selected : "None"}
                     </div>
 
                     <Button variant="secondary"
@@ -56,9 +56,9 @@ export class IntegrationSelect extends Component {
                             console.log(App)
                             this.setCode(INITIAL_CODE)
                         }}>Reset </Button>
-                     <Button variant="secondary"
+                    {/* <Button variant="secondary"
                         onClick={() => window.open('https://github.com/tmrowco/tmrowapp-contrib')}>
-                        <FontAwesomeIcon icon={["fab", "github"]} size="lg" /> </Button>
+                        <FontAwesomeIcon icon={["fab", "github"]} size="lg" /> </Button> */}
                 </div>
             </div>
         </div>

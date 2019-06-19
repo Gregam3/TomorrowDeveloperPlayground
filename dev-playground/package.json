@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@csstools/normalize.css": "^10.1.0",
     "@fortawesome/fontawesome-svg-core": "^1.2.19",
     "@fortawesome/free-brands-svg-icons": "^5.9.0",
     "@fortawesome/free-solid-svg-icons": "^5.9.0",
@@ -10,7 +11,9 @@
     "@std/esm": "^0.26.0",
     "babel-register": "^6.26.0",
     "body-parser": "^1.19.0",
+    "caniuse-lite": "1.0.30000974",
     "crypto-js": "^3.1.9-1",
+    "d3-geo": "^1.11.3",
     "esm": "^3.2.25",
     "fs": "0.0.1-security",
     "helmet": "^3.18.0",
@@ -45,12 +48,14 @@
     "react-toastify": "^5.2.1",
     "react-youtube": "^7.9.0",
     "require-dir": "^1.2.0",
+    "socket.io": "^2.2.0",
     "socket.io-client": "^2.2.0",
     "superagent": "^5.0.6",
     "universal-cookie": "^4.0.0",
     "uuid": "^3.3.2",
     "uws": "^100.0.1",
-    "whatwg-url": "^7.0.0"
+    "whatwg-url": "^7.0.0",
+    "ws": "3.3.2"
   },
   "scripts": {
     "start": "react-scripts start",
