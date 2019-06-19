@@ -1,4 +1,7 @@
 const handler = require("./CodeHandler");
+
+//TODO REMOVE ME
+const comparisonEngine = require("./ComparisonEngine");
 const express = require('express');
 const bodyParser = require('body-parser');
 const app = express();
@@ -9,6 +12,7 @@ const path = require('path');
 const fs = require('fs');
 const io = require('socket.io')(server, { pingInterval: 5000 });
 import request from 'superagent';
+import { parse } from 'url';
 
 let files = {};
 
@@ -18,7 +22,7 @@ let resolveWebView = null;
 [path.join('../tmrowapp-contrib/integrations/electricity/'), path.join('../tmrowapp-contrib/integrations/transportation/')]
 	.forEach(dir => fs.readdir(dir, (pErr, file) =>
 		file.forEach(f =>
-			fs.readFile(dir + '/' + f, {encoding: 'utf-8'},
+			fs.readFile(dir + '/' + f, { encoding: 'utf-8' },
 				(fErr, data) => files[f] = data))));
 
 app.use(helmet());
@@ -43,6 +47,13 @@ server.listen(port, (err) => {
 app.get('/get-integrations', (err, res) => {
 	res.status(200);
 	res.json(files);
+	res.end();
+});
+
+app.get('/test', (err, res) => {
+	res.status(200);
+	res.json(comparisonEngine.getDASubtrees(
+		handler.readCode("d47117a0-9293-11e9-ad86-49d0fe50ea66")))
 	res.end();
 });
 
