@@ -14,9 +14,10 @@ export class LogPanel extends Component {
     componentWillReceiveProps(nextProps) {
         this.setState({
             logs: nextProps.logs
-                .map(l => <p className={'log-' + l.level}> 
+                .map(l => <p className={'log-' + l.level}>
                     {typeof l.message === 'object' ? JSON.stringify(l.message) : l.message}</p>)
         })
+        console.log(this.state.logs)
     }
 
     render() {
@@ -32,7 +33,7 @@ export class LogPanel extends Component {
                     fontFamily: 'Ubuntu', color: 'white', fontWeight: 'bold',
                     overflowX: 'scroll', fontSize: 12
                 }}>
-                    <div style={{ margin: 10, marginBottom: 0  }}>
+                    <div style={{ margin: 10, marginBottom: 0 }}>
                         {this.state.logs}
                     </div>
                 </div>

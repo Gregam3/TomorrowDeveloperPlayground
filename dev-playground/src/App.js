@@ -17,7 +17,7 @@ import { IntegrationSelect } from './IntegrationSelectPanel';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import {
 	faCog, faPlus, faPlay, faQuestionCircle, faTree, faLock, faCodeBranch, faPoll,
-	faTerminal 
+	faTerminal
 } from '@fortawesome/free-solid-svg-icons';
 import { faGithub } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -44,7 +44,6 @@ class App extends Component {
 	state = {
 		results: {},
 		code: null,
-		results: {},
 		envRefList: [],
 		username: "",
 		password: "",
@@ -99,7 +98,7 @@ class App extends Component {
 				toast.success('Results Updated', { autoClose: 2000 });
 				console.log(results)
 				results.activities = processActivities(results.collect.activities);
-				this.setState({ results, logs: (results.logs) ? results.logs : [] });
+				this.setState({ results, logs: (results.logs.length > 0) ? results.logs : [] });
 			});
 		socket.on('setCode',
 			(code) => this.setState({ code: code !== null ? code : INITIAL_CODE }));
@@ -118,7 +117,8 @@ class App extends Component {
 					<img style={{
 						marginTop: '10px',
 						flex: 1
-					}} src="tmrow-light.png" />
+					}} src="tmrow-light.png"
+						alt="logo" />
 					<h1 style={{ float: 'right', marginRight: '70%' }}>
 						Developer Playground </h1>
 				</div>
@@ -137,7 +137,7 @@ class App extends Component {
 					}}
 					setStateInjection={this.setStateInjection}
 				/>
-				<LogPanel logs={this.state.logs}/>
+				<LogPanel logs={this.state.logs} />
 				<Documentation />
 				<ToastContainer style={{ width: '40%', fontSize: '25pt' }} />
 

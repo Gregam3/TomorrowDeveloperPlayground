@@ -1,10 +1,9 @@
 import React, { Component } from 'react';
-import { Modal, Button, Nav, Dropdown } from "react-bootstrap";
+import { Modal, Button, Nav } from "react-bootstrap";
 import JSONInput from 'react-json-editor-ajrm';
 import locale from 'react-json-editor-ajrm/locale/en';
 import ReactJsonSyntaxHighlighter from 'react-json-syntax-highlighter';
 import { Charts, ChartContainer, ChartRow, YAxis, LineChart } from "react-timeseries-charts";
-import { TimeSeries, TimeRange } from "pondjs";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const DISPLAY_TYPE = {

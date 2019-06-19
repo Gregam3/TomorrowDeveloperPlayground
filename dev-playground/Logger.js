@@ -1,6 +1,6 @@
 let logs = [];
 
-const log = (level, msg) => logs.push({ level, msg })
+const log = (level, message) => logs.push({ level, message })
 
 const popLogs = () => {
     const tempLogs = logs;
