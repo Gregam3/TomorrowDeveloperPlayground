@@ -15,24 +15,23 @@ const getDASubtrees = code => {
 		if (n.type !== "EmptyStatement") funASTs.push(elimateNodeDetails(n));
 	});
 
-	return compareFunAST(funASTs[0], funASTs[1]);
+	return compareFunAST(funASTs[0].body.body, funASTs[1].body.body);
 };
 
 const DIFF_VALUES = { D: 10, N: 10, A: 5, E: 2.5 };
 
 const compareFunAST = (nodes, compareNodes) => {
 	//body.body takes the body of the block statement following a function (i.e. all nodes inside)
-	const childNodes = nodes.body.body;
 
 	console.log("Retreiving unsorted code matches");
-	//new Array used to retrieve range to map
-	let matches = [...Array(childNodes.length).keys()].map(node => {
+	//Array used to retrieve range to map
+	let matches = [...Array(nodes.length).keys()].map(node => {
 		return {
-			node: childNodes[node],
+			node: nodes[node],
 			comparisons: [...Array(compareNodes.length).keys()].map(compareIndex => {
 				return {
 					similiarity: calculateSimiliarity(
-						childNodes[node],
+						nodes[node],
 						compareNodes[compareIndex]
 					),
 					compareIndex
@@ -41,29 +40,30 @@ const compareFunAST = (nodes, compareNodes) => {
 		};
 	});
 
-	return matches;
-
-	//Sort Comparison hiearchies inside of each line
-	let nodeMatches = matches.map(match =>
-		match.sort((l, r) => l.similiarity.localeCompare(r.similiarity))
-	);
+	console.log("Sorting match hierarchy");
+	//Sort Comparison hiearchies inside of each node, ascending order.
+	let nodeMatches = matches.map(match => {
+		return {
+			node: match.node,
+			comparisons: match.comparisons.sort(
+				(l, r) => l.similiarity - r.similiarity
+			)
+		};
+	});
 
 	//Eliminate duplicate matches
-	nodeMatches = new Array(matches.length).map(i => {
-		let compareMatch = compareMatch(
-			matches[i].comparisons[0].compareIndex,
-			nodeMatches
-		);
-		while (compareMatch.compare !== 0) {
-			if (compareMatch.compare === 1) matches[i].comparisons.shift();
-			else matches[compareMatch.index].shift();
+	[...Array(nodeMatches.length).keys()].map(i => {
+		let compareResult = compareMatch(i, nodeMatches);
 
-			compareMatch = compareMatch(
-				matches[i].comparisons[0].compareIndex,
-				nodeMatches
-			);
+		while (compareResult.compare !== 0) {
+			if (compareResult.compare === 1) nodeMatches[i].comparisons.shift();
+			else nodeMatches[compareResult.index].comparisons.shift();
+
+			compareResult = compareMatch(i, nodeMatches);
 		}
 	});
+
+	return nodeMatches;
 
 	let modifier =
 		nodeMatches.filter(match => match.comparisons.length === 0).length * 0.5;
@@ -84,14 +84,18 @@ const compareFunAST = (nodes, compareNodes) => {
 
 //0: does not share, 1: original node is more similiar, -1: compare node is more similiar
 const compareMatch = (index, matches) => {
-	if (!matches[index]) return { index: -1, compare: 0 };
+	console.log("Comparing match", index, matches.length);
+	if (matches[index].comparisons.length === 0) return { index: -1, compare: 0 };
 
-	for (let i = 0; i < matches.length; i++)
+	for (let i = 0; i < matches.length; i++) {
+		console.log(i);
 		if (
+			matches[i].comparisons.length > 0 &&
 			matches[index].comparisons[0].compareIndex ===
 				matches[i].comparisons[0].compareIndex &&
 			index !== i
-		)
+		) {
+			console.log("Found match", index, i);
 			return {
 				index: i,
 				compare:
@@ -100,7 +104,10 @@ const compareMatch = (index, matches) => {
 						? 1
 						: -1
 			};
+		}
+	}
 
+	console.log("Match not found");
 	return { index: -1, compare: 0 };
 };
 
