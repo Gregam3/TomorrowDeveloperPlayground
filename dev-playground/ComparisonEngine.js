@@ -1,12 +1,12 @@
 const parser = require("@babel/parser");
 const deepDiff = require("deep-diff").diff;
+const deepClone = require("lodash.clonedeep");
 
 // const FUN_NAMES = ["connect", "collect", "disconnect"];
 const FUN_NAMES = ["one", "two"];
 
 const getDASubtrees = code => {
 	const AST = parser.parse(code, { sourceType: "module" }).program.body;
-
 	let funASTs = [];
 
 	AST.forEach(n => {
@@ -15,10 +15,32 @@ const getDASubtrees = code => {
 		if (n.type !== "EmptyStatement") funASTs.push(elimateNodeDetails(n));
 	});
 
-	return compareFunAST(funASTs[0].body.body, funASTs[1].body.body);
+	console.log(flattenAST(funASTs[0].body.body).length);
+
+	return compareFunAST(
+		flattenAST(funASTs[0].body.body),
+		flattenAST(funASTs[1].body.body)
+	);
 };
 
 const DIFF_VALUES = { D: 10, N: 10, A: 5, E: 2.5 };
+const CONTROL_NODE_TYPES = ["IfStatement"];
+
+const flattenAST = nodes => {
+	flatNodes = [];
+
+	nodes.forEach(node => {
+		if (CONTROL_NODE_TYPES.includes(node.type)) {
+			const consequent = deepClone(node.consequent.body);
+			// delete node.consequent;
+			// flatNodes.push(node);
+			flatNodes.push(flattenAST(consequent));
+		}
+		flatNodes.push(node);
+	});
+
+	return flatNodes;
+};
 
 const compareFunAST = (nodes, compareNodes) => {
 	//body.body takes the body of the block statement following a function (i.e. all nodes inside)
@@ -63,14 +85,12 @@ const compareFunAST = (nodes, compareNodes) => {
 		}
 	});
 
-	return nodeMatches;
-
 	let modifier =
 		nodeMatches.filter(match => match.comparisons.length === 0).length * 0.5;
 	//To use 1 as a base, cannot be set before incase filter yields 0
 	modifier++;
 
-	let similiarity = 0;
+	let similiarity = modifier > 1 ? 10 * modifier : 0;
 
 	//Finally uses best matched nodes to complete comparison
 	nodeMatches
@@ -84,18 +104,15 @@ const compareFunAST = (nodes, compareNodes) => {
 
 //0: does not share, 1: original node is more similiar, -1: compare node is more similiar
 const compareMatch = (index, matches) => {
-	console.log("Comparing match", index, matches.length);
 	if (matches[index].comparisons.length === 0) return { index: -1, compare: 0 };
 
 	for (let i = 0; i < matches.length; i++) {
-		console.log(i);
 		if (
 			matches[i].comparisons.length > 0 &&
 			matches[index].comparisons[0].compareIndex ===
 				matches[i].comparisons[0].compareIndex &&
 			index !== i
 		) {
-			console.log("Found match", index, i);
 			return {
 				index: i,
 				compare:
@@ -107,7 +124,6 @@ const compareMatch = (index, matches) => {
 		}
 	}
 
-	console.log("Match not found");
 	return { index: -1, compare: 0 };
 };
 
