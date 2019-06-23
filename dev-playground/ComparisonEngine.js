@@ -19,7 +19,7 @@ const getDASubtrees = code => {
 
 	// return funASTs[0].body.body;
 
-	// return flattenAST(funASTs[0].body.body);
+	return flattenAST(funASTs[0].body.body);
 
 	//body.body takes the body of the block statement following a function (i.e. all nodes inside)
 	return compareFunAST(
@@ -58,7 +58,10 @@ const flattenAST = nodes => {
 				flatNodes.push(leafNodes.node);
 				leafNodes.body.forEach(aNode => {
 					if (aNode.type === "ArrowFunctionExpression")
-						flatNodes.push(...flattenAST(aNode.body.body));
+						flatNodes.push(
+							//.body for => and .body.body for => {}
+							...flattenAST(aNode.body.body ? aNode.body.body : aNode.body)
+						);
 					else flatNodes.push(aNode);
 				});
 			}
