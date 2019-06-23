@@ -17,7 +17,9 @@ const getDASubtrees = code => {
 		if (n.type !== "EmptyStatement") funASTs.push(elimateNodeDetails(n));
 	});
 
-	return funASTs[0].body.body;
+	// return funASTs[0].body.body;
+
+	// return flattenAST(funASTs[0].body.body);
 
 	//body.body takes the body of the block statement following a function (i.e. all nodes inside)
 	return compareFunAST(
@@ -27,34 +29,38 @@ const getDASubtrees = code => {
 };
 
 const DIFF_VALUES = { D: 10, N: 10, A: 5, E: 2.5 };
-const CONTROL_NODE_TYPES = [
+const DEEP_NODE_TYPES = [
 	"IfStatement",
 	"WhileStatement",
 	"ForStatement",
-	"DoWhileStatement"
+	"DoWhileStatement",
+	"[FUNCTION]"
 ];
 
 const flattenAST = nodes => {
 	let flatNodes = [];
 
 	nodes.forEach(node => {
-		if (CONTROL_NODE_TYPES.includes(node.type)) {
+		if (DEEP_NODE_TYPES.includes(node.type)) {
 			let leafNodes = extractLeafNodes(node);
 			console.log(leafNodes);
 			flatNodes.push(leafNodes.node);
 			flatNodes.push(...flattenAST(leafNodes.body));
 		} else if (node.type === "ExpressionStatement") {
-			let leafNodes = extractLeafNodes(node);
-
-			if (leafNodes.every(a => a.type !== "ArrowFunctionExpression")) {
+			if (
+				node.expression.arguments.every(
+					a => a.type !== "ArrowFunctionExpression"
+				)
+			) {
 				flatNodes.push(node);
 			} else {
+				let leafNodes = extractLeafNodes(node);
 				flatNodes.push(leafNodes.node);
-				leafNodes.arguments
-					.filter(a => a.type === "ArrowFunctionExpression")
-					.forEach(aFun => {
-						flatNodes.push();
-					});
+				leafNodes.body.forEach(aNode => {
+					if (aNode.type === "ArrowFunctionExpression")
+						flatNodes.push(...flattenAST(aNode.body.body));
+					else flatNodes.push(aNode);
+				});
 			}
 		} else flatNodes.push(node);
 	});
