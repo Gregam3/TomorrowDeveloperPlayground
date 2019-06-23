@@ -6,7 +6,9 @@ const deepClone = require("lodash.clonedeep");
 const FUN_NAMES = ["one", "two"];
 
 const getDASubtrees = code => {
-	const AST = parser.parse(code, { sourceType: "module" }).program.body;
+	const AST = parser.parse(code, {
+		sourceType: "module"
+	}).program.body;
 	let funASTs = [];
 
 	AST.forEach(n => {
@@ -15,8 +17,7 @@ const getDASubtrees = code => {
 		if (n.type !== "EmptyStatement") funASTs.push(elimateNodeDetails(n));
 	});
 
-	console.log(flattenAST(funASTs[0].body.body).length);
-
+	//body.body takes the body of the block statement following a function (i.e. all nodes inside)
 	return compareFunAST(
 		flattenAST(funASTs[0].body.body),
 		flattenAST(funASTs[1].body.body)
@@ -27,24 +28,20 @@ const DIFF_VALUES = { D: 10, N: 10, A: 5, E: 2.5 };
 const CONTROL_NODE_TYPES = ["IfStatement"];
 
 const flattenAST = nodes => {
-	flatNodes = [];
+	let flatNodes = [];
 
 	nodes.forEach(node => {
 		if (CONTROL_NODE_TYPES.includes(node.type)) {
-			const consequent = deepClone(node.consequent.body);
-			// delete node.consequent;
-			// flatNodes.push(node);
-			flatNodes.push(flattenAST(consequent));
-		}
-		flatNodes.push(node);
+			const body = deepClone(node.consequent.body);
+			delete node.consequent;
+			flatNodes.concat([node].concat(flattenAST(body)));
+		} else flatNodes.push(node);
 	});
 
 	return flatNodes;
 };
 
 const compareFunAST = (nodes, compareNodes) => {
-	//body.body takes the body of the block statement following a function (i.e. all nodes inside)
-
 	console.log("Retreiving unsorted code matches");
 	//Array used to retrieve range to map
 	let matches = [...Array(nodes.length).keys()].map(node => {
