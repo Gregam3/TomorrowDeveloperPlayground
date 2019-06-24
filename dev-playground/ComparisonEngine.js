@@ -5,45 +5,35 @@ const deepClone = require("lodash.clonedeep");
 // const FUN_NAMES = ["connect", "collect", "disconnect"];
 const FUN_NAMES = ["one", "two"];
 
-const getDASubtrees = code => {
-	const AST = parser.parse(code, {
-		sourceType: "module"
-	}).program.body;
-	let funASTs = [];
+const getSimiliarity = (baseFunStr, compareFunStr) => {
+	const getFlatAST = code =>
+		flattenAST(
+			parser
+				.parse(code, {
+					sourceType: "module"
+				})
+				//Gets the function body
+				.program.body[0].body.body.map(elimateNodeDetails)
+		);
 
-	AST.forEach(n => {
-		// if (n.type === 'FunctionDeclaration' && FUN_NAMES.includes(n.id.name))
-		//     funs[n.id.name] = elimateNodeDetails(n);
-		if (n.type !== "EmptyStatement") funASTs.push(elimateNodeDetails(n));
-	});
-
-	// return funASTs[0].body.body;
-
-	// return flattenAST(funASTs[0].body.body);
-
-	//body.body takes the body of the block statement following a function (i.e. all nodes inside)
-	return compareFunAST(
-		flattenAST(funASTs[0].body.body),
-		flattenAST(funASTs[1].body.body)
-	);
+	return compareFunAST(getFlatAST(baseFunStr), getFlatAST(compareFunStr));
 };
 
 const DIFF_VALUES = { D: 1, N: 1, A: 0.5, E: 0.25 };
-const DEEP_NODE_TYPES = [
+const ALWAYS_DEEP_NODE_TYPES = [
 	"IfStatement",
 	"WhileStatement",
 	"ForStatement",
 	"DoWhileStatement",
-	"[FUNCTION]"
+	"FunctionDeclaration"
 ];
 
 const flattenAST = nodes => {
 	let flatNodes = [];
 
 	nodes.forEach(node => {
-		if (DEEP_NODE_TYPES.includes(node.type)) {
+		if (ALWAYS_DEEP_NODE_TYPES.includes(node.type)) {
 			let leafNodes = extractLeafNodes(node);
-			console.log(leafNodes);
 			flatNodes.push(leafNodes.node);
 			flatNodes.push(...flattenAST(leafNodes.body));
 		} else if (node.type === "ExpressionStatement") {
@@ -74,7 +64,9 @@ const flattenAST = nodes => {
 
 const extractLeafNodes = node => {
 	if (node.type === "IfStatement") {
-		const ifBody = deepClone(node.consequent.body);
+		const ifBody = node.consequent.hasOwnProperty("body")
+			? deepClone(node.consequent.body)
+			: [deepClone(node.consequent)];
 		delete node.consequent;
 		return { node, body: ifBody };
 	} else if (node.type === "ExpressionStatement") {
@@ -83,13 +75,14 @@ const extractLeafNodes = node => {
 		return { node, body: arguments };
 	}
 
-	const body = deepClone(node.body.body);
+	const body = node.body.hasOwnProperty("body")
+		? deepClone(node.body.body)
+		: [deepClone(node.body)];
 	delete node.body;
 	return { node, body };
 };
 
 const compareFunAST = (nodes, compareNodes) => {
-	console.log("Retreiving unsorted code matches");
 	//Array used to retrieve range to map
 	let matches = [...Array(nodes.length).keys()].map(node => {
 		return {
@@ -106,7 +99,6 @@ const compareFunAST = (nodes, compareNodes) => {
 		};
 	});
 
-	console.log("Sorting match hierarchy");
 	//Sort Comparison hiearchies inside of each node, ascending order.
 	let nodeMatches = matches.map(match => {
 		return {
@@ -203,4 +195,4 @@ const elimateNodeDetails = node => {
 	return node;
 };
 
-module.exports.getDASubtrees = getDASubtrees;
+module.exports.getSimiliarity = getSimiliarity;
