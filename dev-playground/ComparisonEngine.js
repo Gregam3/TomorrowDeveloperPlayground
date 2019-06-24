@@ -19,7 +19,7 @@ const getDASubtrees = code => {
 
 	// return funASTs[0].body.body;
 
-	return flattenAST(funASTs[0].body.body);
+	// return flattenAST(funASTs[0].body.body);
 
 	//body.body takes the body of the block statement following a function (i.e. all nodes inside)
 	return compareFunAST(
@@ -28,7 +28,7 @@ const getDASubtrees = code => {
 	);
 };
 
-const DIFF_VALUES = { D: 10, N: 10, A: 5, E: 2.5 };
+const DIFF_VALUES = { D: 1, N: 1, A: 0.5, E: 0.25 };
 const DEEP_NODE_TYPES = [
 	"IfStatement",
 	"WhileStatement",
@@ -57,11 +57,12 @@ const flattenAST = nodes => {
 				let leafNodes = extractLeafNodes(node);
 				flatNodes.push(leafNodes.node);
 				leafNodes.body.forEach(aNode => {
-					if (aNode.type === "ArrowFunctionExpression")
-						flatNodes.push(
-							//.body for => and .body.body for => {}
-							...flattenAST(aNode.body.body ? aNode.body.body : aNode.body)
-						);
+					if (
+						aNode.type === "ArrowFunctionExpression" &&
+						aNode.body.hasOwnProperty("body")
+					)
+						//.body for => and .body.body for => {}
+						flatNodes.push(...flattenAST(aNode.body.body));
 					else flatNodes.push(aNode);
 				});
 			}
@@ -175,7 +176,7 @@ const calculateSimiliarity = (node1, node2) => {
 
 	const diff = deepDiff(node1, node2);
 	if (diff) diff.forEach(d => (diffValue += DIFF_VALUES[d.kind]));
-	return diffValue;
+	return diffValue > 5 ? 5 : diffValue;
 };
 
 const countKeys = obj => JSON.stringify(obj).match(/[^\\]":/g).length;
