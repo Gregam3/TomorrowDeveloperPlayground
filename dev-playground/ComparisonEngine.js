@@ -1,9 +1,47 @@
 const parser = require("@babel/parser");
 const deepDiff = require("deep-diff").diff;
 const treeSurgeon = require("./TreeSurgeon");
+const handler = require("./CodeHandler");
 
-// const FUN_NAMES = ["connect", "collect", "disconnect"];
-const FUN_NAMES = ["one", "two"];
+const FUN_NAMES = ["connect", "collect", "disconnect"];
+
+const compareIntegration = integrationPath => {
+	const integration = require(integrationPath);
+	let bestMatches = {
+		connect: {},
+		collect: {},
+		disconnect: {}
+	};
+
+	handler.files.paths.forEach(p => {
+		const currentIntegration = require(p.replace(".js", "")).default;
+
+		FUN_NAMES.forEach(funName => {
+			let similiarity = getSimiliarity(
+				integration[funName].toString(),
+				currentIntegration[funName].toString()
+			);
+
+			console.log(funName, p, similiarity);
+
+			if (
+				Object.keys(bestMatches[funName]).length === 0 ||
+				similiarity < bestMatches[funName].similiarity
+			)
+				bestMatches[funName] = {
+					name: p
+						.split("/")
+						.slice(-1)
+						.pop(),
+					similiarity,
+					body: currentIntegration[funName].toString()
+				};
+		});
+		delete require.cache[require(p.replace(".js", ""))];
+	});
+
+	return bestMatches;
+};
 
 const getSimiliarity = (baseFunStr, compareFunStr) => {
 	const getFlatAST = code =>
@@ -112,4 +150,4 @@ const calculateSimiliarity = (node1, node2) => {
 
 const countKeys = obj => JSON.stringify(obj).match(/[^\\]":/g).length;
 
-module.exports.getSimiliarity = getSimiliarity;
+module.exports.compareIntegration = compareIntegration;

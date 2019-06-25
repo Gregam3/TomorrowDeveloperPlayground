@@ -8,31 +8,9 @@ const app = express();
 const server = require("http").Server(app);
 const port = 3001;
 const helmet = require("helmet");
-const path = require("path");
-const fs = require("fs");
 const io = require("socket.io")(server, { pingInterval: 5000 });
-import request from "superagent";
-import { parse } from "url";
-
-let files = {};
 
 let resolveWebView = null;
-
-//TODO replace with .flatMap
-[
-	path.join("../tmrowapp-contrib/integrations/electricity/"),
-	path.join("../tmrowapp-contrib/integrations/transportation/")
-].forEach(dir =>
-	fs.readdir(dir, (pErr, file) =>
-		file.forEach(f =>
-			fs.readFile(
-				dir + "/" + f,
-				{ encoding: "utf-8" },
-				(fErr, data) => (files[f] = data)
-			)
-		)
-	)
-);
 
 app.use(helmet());
 app.use(bodyParser.json());
@@ -58,18 +36,11 @@ server.listen(port, err => {
 	console.log("Server Running");
 });
 
-app.get("/get-integrations", (err, res) => {
-	res.status(200);
-	res.json(files);
-	res.end();
-});
-
 app.get("/test", (err, res) => {
 	res.status(200);
 	res.json(
-		comparisonEngine.getSimiliarity(
-			handler.readCode("d47117a0-9293-11e9-ad86-49d0fe50ea66"),
-			""
+		comparisonEngine.compareIntegration(
+			"./integration-test/d47117a0-9293-11e9-ad86-49d0fe50ea66/integration"
 		)
 	);
 	res.end();
@@ -80,7 +51,7 @@ let socket = null;
 io.on("connection", s => {
 	console.log("New websocket connection ", s.handshake.headers.origin);
 	socket = s;
-	socket.emit("setIntegrations", files);
+	socket.emit("setIntegrations", handler.files);
 	socket.emit("setCode", handler.readCode(s.handshake.query.name));
 });
 
