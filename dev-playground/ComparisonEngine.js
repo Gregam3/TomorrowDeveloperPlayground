@@ -1,86 +1,25 @@
 const parser = require("@babel/parser");
 const deepDiff = require("deep-diff").diff;
-const deepClone = require("lodash.clonedeep");
+const treeSurgeon = require("./TreeSurgeon");
 
 // const FUN_NAMES = ["connect", "collect", "disconnect"];
 const FUN_NAMES = ["one", "two"];
 
 const getSimiliarity = (baseFunStr, compareFunStr) => {
 	const getFlatAST = code =>
-		flattenAST(
+		treeSurgeon.flattenAST(
 			parser
 				.parse(code, {
 					sourceType: "module"
 				})
 				//Gets the function body
-				.program.body[0].body.body.map(elimateNodeDetails)
+				.program.body[0].body.body.map(treeSurgeon.elimateNodeDetails)
 		);
 
 	return compareFunAST(getFlatAST(baseFunStr), getFlatAST(compareFunStr));
 };
 
-const DIFF_VALUES = { D: 1, N: 1, A: 0.5, E: 0.25 };
-const ALWAYS_DEEP_NODE_TYPES = [
-	"IfStatement",
-	"WhileStatement",
-	"ForStatement",
-	"DoWhileStatement",
-	"FunctionDeclaration"
-];
-
-const flattenAST = nodes => {
-	let flatNodes = [];
-
-	nodes.forEach(node => {
-		if (ALWAYS_DEEP_NODE_TYPES.includes(node.type)) {
-			let leafNodes = extractLeafNodes(node);
-			flatNodes.push(leafNodes.node);
-			flatNodes.push(...flattenAST(leafNodes.body));
-		} else if (node.type === "ExpressionStatement") {
-			if (
-				node.expression.arguments.every(
-					a => a.type !== "ArrowFunctionExpression"
-				)
-			) {
-				flatNodes.push(node);
-			} else {
-				let leafNodes = extractLeafNodes(node);
-				flatNodes.push(leafNodes.node);
-				leafNodes.body.forEach(aNode => {
-					if (
-						aNode.type === "ArrowFunctionExpression" &&
-						aNode.body.hasOwnProperty("body")
-					)
-						//.body for => and .body.body for => {}
-						flatNodes.push(...flattenAST(aNode.body.body));
-					else flatNodes.push(aNode);
-				});
-			}
-		} else flatNodes.push(node);
-	});
-
-	return flatNodes;
-};
-
-const extractLeafNodes = node => {
-	if (node.type === "IfStatement") {
-		const ifBody = node.consequent.hasOwnProperty("body")
-			? deepClone(node.consequent.body)
-			: [deepClone(node.consequent)];
-		delete node.consequent;
-		return { node, body: ifBody };
-	} else if (node.type === "ExpressionStatement") {
-		const arguments = deepClone(node.expression.arguments);
-		delete node.expression;
-		return { node, body: arguments };
-	}
-
-	const body = node.body.hasOwnProperty("body")
-		? deepClone(node.body.body)
-		: [deepClone(node.body)];
-	delete node.body;
-	return { node, body };
-};
+const DIFF_VALUES = { D: 10, N: 10, A: 5, E: 2.5 };
 
 const compareFunAST = (nodes, compareNodes) => {
 	//Array used to retrieve range to map
@@ -135,7 +74,7 @@ const compareFunAST = (nodes, compareNodes) => {
 			similiarity += match.comparisons[0].similiarity;
 		});
 
-	return similiarity * modifier;
+	return (similiarity * modifier) / countKeys(nodes);
 };
 
 //0: does not share, 1: original node is more similiar, -1: compare node is more similiar
@@ -172,27 +111,5 @@ const calculateSimiliarity = (node1, node2) => {
 };
 
 const countKeys = obj => JSON.stringify(obj).match(/[^\\]":/g).length;
-
-const DETAIL_KEYS = [
-	"name",
-	"identifierName",
-	"start",
-	"end",
-	"loc",
-	"trailingComments",
-	"leadingComments",
-	"extra",
-	"value"
-];
-
-const elimateNodeDetails = node => {
-	if (node)
-		Object.keys(node).forEach(k => {
-			if (DETAIL_KEYS.includes(k)) delete node[k];
-			else if (typeof node[k] === "object") elimateNodeDetails(node[k]);
-		});
-
-	return node;
-};
 
 module.exports.getSimiliarity = getSimiliarity;

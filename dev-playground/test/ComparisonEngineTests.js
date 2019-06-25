@@ -290,45 +290,98 @@ describe("\nStructurally Similiar Functions", () => {
 
 describe("\nLength Coefficient Tests", () => {
 	let testIndex = 1;
-	context(testIndex++ + ". different literal type", () => {
-		const a = `function a() {
+	context(
+		testIndex++ + ". Longer less similiar method is judged as such",
+		() => {
+			const a = `function a() {
             let r = "test";
             const t = true;
         }`;
-		const b = `function b() {
+			const b = `function b() {
             let q = "asdasd";
             console.log("hello");
+            new Date().getTime();
+            sleep(300);
         }`;
 
-		const a1 = `function a() {
+			const a1 = `function a() {
             let r = "test";
             const t = true;
 
             if(true) {
                 const v = r + 3;
                 new Date().getTime();
-                sleep(300)
+                sleep(300);
             }
         }`;
 
-		const b1 = `function b() {
+			const b1 = `function b() {
             let r = "test";
             const t = true;
 
             if(true) {
                 console.log("here");
                 console.log(32.5);
-                sleep(300)
+                sleep(300);
             }
         }`;
 
-		console.log(
-			"here",
-			engine.getSimiliarity(a, b),
-			engine.getSimiliarity(a1, b1)
-		);
+			console.log(
+				"here",
+				engine.getSimiliarity(a, b),
+				engine.getSimiliarity(a1, b1)
+			);
 
-		it("a-b similiarity less than a1-b1 similiarity", () =>
-			assert(engine.getSimiliarity(a, b) > engine.getSimiliarity(a1, b1)));
-	});
+			it("a-b similiarity greater than a1-b1 similiarity", () =>
+				assert(engine.getSimiliarity(a, b) > engine.getSimiliarity(a1, b1)));
+		}
+	);
+
+	context(
+		testIndex++ + ". Longer more similiar method is judged as such",
+		() => {
+			const a = `function a() {
+            let r = "test";
+            const t = true;
+        }`;
+			const b = `function b() {
+            let q = "asdasd";
+            console.log("hello");
+            new Date().getTime();
+            sleep(300);
+        }`;
+
+			const a1 = `function a() {
+            let r = "test";
+            const t = true;
+
+            if(true) {
+                const v = r + 3;
+                new Date().getTime();
+                new Date().getTime();
+                sleep(300);
+            }
+        }`;
+
+			const b1 = `function b() {
+            let r = "test";
+            const t = true;
+
+            if(true) {
+                console.log("here");
+                console.log(32.5);
+                sleep(300);
+            }
+        }`;
+
+			console.log(
+				"here",
+				engine.getSimiliarity(a, b),
+				engine.getSimiliarity(a1, b1)
+			);
+
+			it("a-b similiarity less than a1-b1 similiarity", () =>
+				assert(engine.getSimiliarity(a, b) < engine.getSimiliarity(a1, b1)));
+		}
+	);
 });
