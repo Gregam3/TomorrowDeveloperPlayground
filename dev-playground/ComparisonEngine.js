@@ -5,8 +5,7 @@ const handler = require("./CodeHandler");
 
 const FUN_NAMES = ["connect", "collect", "disconnect"];
 
-const compareIntegration = integrationPath => {
-	const integration = require(integrationPath);
+const compareIntegration = integration => {
 	let bestMatches = {
 		connect: {},
 		collect: {},
@@ -27,8 +26,6 @@ const compareIntegration = integrationPath => {
 					currentIntegration[funName].toString(),
 					integration[funName].toString()
 				);
-
-			console.log(funName, p, similiarity);
 
 			if (
 				Object.keys(bestMatches[funName]).length === 0 ||

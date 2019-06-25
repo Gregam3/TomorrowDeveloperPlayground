@@ -254,25 +254,37 @@ export class ExecutionResults extends Component {
 				<h1>Code Similiarity</h1>
 				<label>Connect Similiarity</label>
 				<p>
-					The integration with the most similiar connect method is <b>X</b>.
-					Which we thought was [SOMEWHAT/VERY/NOT VERY] similiar to your code.
+					The integration with the most similiar connect method is &nbsp;
+					<b>{this.state.results.codeSimiliarity.connect.name}</b>. Which we
+					thought was [SOMEWHAT/VERY/NOT VERY] similiar to your code.
 				</p>
-				<p>Similiarity Value: 100</p>
-				<pre> CONNECT CODE</pre>
+				<p>
+					Similiarity Value:{" "}
+					{this.state.results.codeSimiliarity.connect.similiarity}
+				</p>
+				<pre>{this.state.results.codeSimiliarity.connect.body}</pre>
 				<label>Collect Similiarity</label>
 				<p>
-					The integration with the most similiar collect method is <b>X</b>.
-					Which we thought was [SOMEWHAT/VERY/NOT VERY] similiar to your code.
+					The integration with the most similiar collect method is &nbsp;
+					<b>{this.state.results.codeSimiliarity.collect.name}</b>. Which we
+					thought was [SOMEWHAT/VERY/NOT VERY] similiar to your code.
 				</p>
-				<p>Similiarity Value: 100</p>
-				<pre> COLLECT CODE</pre>
+				<p>
+					Similiarity Value:{" "}
+					{this.state.results.codeSimiliarity.collect.similiarity}
+				</p>
+				<pre>{this.state.results.codeSimiliarity.collect.body}</pre>
 				<label>Disconnect Similiarity</label>
 				<p>
-					The integration with the most similiar disconnect method is <b>X</b>.
-					Which we thought was [SOMEWHAT/VERY/NOT VERY] similiar to your code.
+					The integration with the most similiar disconnect method is &nbsp;
+					<b>{this.state.results.codeSimiliarity.disconnect.name}</b>. Which we
+					thought was [SOMEWHAT/VERY/NOT VERY] similiar to your code.
 				</p>
-				<p>Similiarity Value: 100</p>
-				<pre> Disconnect CODE</pre>
+				<p>
+					Similiarity Value:
+					{this.state.results.codeSimiliarity.disconnect.similiarity}
+				</p>
+				<pre>{this.state.results.codeSimiliarity.disconnect.body}</pre>
 			</div>
 		);
 	}

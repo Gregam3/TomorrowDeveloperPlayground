@@ -6,6 +6,8 @@ const definitions = require("../tmrowapp-contrib/definitions");
 const models = {
 	transport: require("../tmrowapp-contrib/co2eq/transportation")
 };
+const comparisonEngine = require("./ComparisonEngine");
+
 const FUN_NAMES = ["connect", "collect", "disconnect", "config"];
 
 const exportCode = `\n\nexport {${FUN_NAMES.join(",")}};`;
@@ -131,7 +133,8 @@ async function assessFunctions(stub, authDetails, stateInjection) {
 							: //https://www.rensmart.com/Calculators/KWH-to-CO2 temporary
 							  a.energyWattHours * 0.00028307
 					),
-					logs: logs.popLogs()
+					logs: logs.popLogs(),
+					codeSimiliarity: comparisonEngine.compareIntegration(stub)
 				}
 			);
 		} else {
@@ -153,7 +156,8 @@ async function assessFunctions(stub, authDetails, stateInjection) {
 							: //https://www.rensmart.com/Calculators/KWH-to-CO2 temporary
 							  a.energyWattHours * 0.00028307
 					),
-					logs: logs.popLogs()
+					logs: logs.popLogs(),
+					codeSimiliarity: comparisonEngine.compareIntegration(stub)
 				}
 			);
 		}
