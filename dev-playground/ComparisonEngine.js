@@ -16,16 +16,12 @@ const compareIntegration = integration => {
 		const currentIntegration = require(p.replace(".js", "")).default;
 
 		FUN_NAMES.forEach(funName => {
-			let similiarity =
+			let similiarity = (
 				getSimiliarity(
 					integration[funName].toString(),
 					currentIntegration[funName].toString()
-				) +
-				//Similiarity calculation is not symmetrical, invert to calculate inverse difference
-				getSimiliarity(
-					currentIntegration[funName].toString(),
-					integration[funName].toString()
-				);
+				) * 100
+			).toFixed(0);
 
 			if (
 				Object.keys(bestMatches[funName]).length === 0 ||
@@ -157,3 +153,4 @@ const countKeys = obj => {
 };
 
 module.exports.compareIntegration = compareIntegration;
+module.exports.getSimiliarity = getSimiliarity;

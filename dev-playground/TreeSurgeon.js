@@ -51,9 +51,9 @@ const extractLeafNodes = node => {
 		delete node.consequent;
 		return { node, body: ifBody };
 	} else if (node.type === "ExpressionStatement") {
-		const arguments = deepClone(node.expression.arguments);
+		const args = deepClone(node.expression.arguments);
 		delete node.expression;
-		return { node, body: arguments };
+		return { node, body: args };
 	}
 
 	const body = node.body.hasOwnProperty("body")

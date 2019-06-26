@@ -10,6 +10,7 @@ import {
 	YAxis,
 	LineChart
 } from "react-timeseries-charts";
+import Gauge from "react-svg-gauge";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const DISPLAY_TYPE = {
@@ -53,9 +54,15 @@ export class ExecutionResults extends Component {
 						<h3>
 							<FontAwesomeIcon icon="poll" />
 							&nbsp; Results{" "}
-							<Button variant="secondary" onClick={() => this.interpretJS()}>
-								{" "}
-								<FontAwesomeIcon icon="play" /> Execute{" "}
+							<Button
+								variant="secondary"
+								onClick={() => {
+									this.setState({ resultsDisplay: DISPLAY_TYPE.JSON });
+									this.interpretJS();
+								}}
+							>
+								&nbsp;
+								<FontAwesomeIcon icon="play" /> Execute&nbsp;
 							</Button>
 							<Button
 								variant="secondary"
@@ -256,37 +263,71 @@ export class ExecutionResults extends Component {
 				<p>
 					The integration with the most similiar connect method is &nbsp;
 					<b>{this.state.results.codeSimiliarity.connect.name}</b>. Which we
-					thought was [SOMEWHAT/VERY/NOT VERY] similiar to your code.
+					thought was{" "}
+					{getSimiliarityText(
+						this.state.results.codeSimiliarity.connect.similiarity
+					)}{" "}
+					similiar to your code.
 				</p>
-				<p>
-					Similiarity Value:{" "}
-					{this.state.results.codeSimiliarity.connect.similiarity}
-				</p>
+				<Gauge
+					value={100 - this.state.results.codeSimiliarity.connect.similiarity}
+					width={200}
+					height={120}
+					label="Connect Similiarity"
+				/>
+				<p>{}</p>
 				<pre>{this.state.results.codeSimiliarity.connect.body}</pre>
 				<label>Collect Similiarity</label>
 				<p>
 					The integration with the most similiar collect method is &nbsp;
 					<b>{this.state.results.codeSimiliarity.collect.name}</b>. Which we
-					thought was [SOMEWHAT/VERY/NOT VERY] similiar to your code.
+					thought was &nbsp;
+					{getSimiliarityText(
+						this.state.results.codeSimiliarity.collect.similiarity
+					)}
+					&nbsp; to your code.
 				</p>
-				<p>
-					Similiarity Value:{" "}
-					{this.state.results.codeSimiliarity.collect.similiarity}
-				</p>
+				<Gauge
+					value={100 - this.state.results.codeSimiliarity.collect.similiarity}
+					width={200}
+					height={120}
+					label="Collect Similiarity"
+				/>
 				<pre>{this.state.results.codeSimiliarity.collect.body}</pre>
 				<label>Disconnect Similiarity</label>
 				<p>
 					The integration with the most similiar disconnect method is &nbsp;
 					<b>{this.state.results.codeSimiliarity.disconnect.name}</b>. Which we
-					thought was [SOMEWHAT/VERY/NOT VERY] similiar to your code.
+					thought was &nbsp;
+					{getSimiliarityText(
+						this.state.results.codeSimiliarity.disconnect.similiarity
+					)}
+					&nbsp; similiar to your code.
 				</p>
-				<p>
-					Similiarity Value:
-					{this.state.results.codeSimiliarity.disconnect.similiarity}
-				</p>
+				<Gauge
+					value={
+						100 - this.state.results.codeSimiliarity.disconnect.similiarity
+					}
+					width={200}
+					height={120}
+					label="Disconnect Similiarity"
+				/>
 				<pre>{this.state.results.codeSimiliarity.disconnect.body}</pre>
 			</div>
 		);
+
+		function getSimiliarityText(similiarityValue) {
+			console.log(similiarityValue);
+			if (similiarityValue === 0) return "identical";
+			else if (similiarityValue < 10) return "extremely similiar";
+			else if (similiarityValue < 20) return "very similiar";
+			else if (similiarityValue < 30) return "similiar";
+			else if (similiarityValue < 50) return "somewhat similiar";
+			else if (similiarityValue < 70)
+				return "quite different, but shares some similariies";
+			else if (similiarityValue > 100)
+				return "very different shares almost no similiarities";
+		}
 	}
 
 	configureRunModal() {

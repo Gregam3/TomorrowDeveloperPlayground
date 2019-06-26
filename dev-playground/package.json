@@ -46,6 +46,7 @@
 		"react-simple-code-editor": "^0.9.11",
 		"react-sound": "^1.2.0",
 		"react-stopwatch": "^2.0.3",
+		"react-svg-gauge": "^1.0.10",
 		"react-timeseries-charts": "^0.16.1",
 		"react-toastify": "^5.2.1",
 		"react-youtube": "^7.9.0",
@@ -61,8 +62,9 @@
 	},
 	"scripts": {
 		"start": "react-scripts start",
+		"start-server": "nodemon --ignore \"src/*\" --ignore \"integration-test/*\" esm-start.js",
 		"build": "react-scripts build",
-		"test": "mocha",
+		"test": "mocha --require ./test/test-helper.js",
 		"eject": "react-scripts eject"
 	},
 	"eslintConfig": {
