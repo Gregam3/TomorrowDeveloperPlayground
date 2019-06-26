@@ -7,26 +7,27 @@ const FUN_NAMES = ["connect", "collect", "disconnect"];
 
 const compareIntegration = integration => {
 	let bestMatches = {
-		connect: {},
-		collect: {},
-		disconnect: {}
+		connect: { similiarity: Number.MAX_VALUE },
+		collect: { similiarity: Number.MAX_VALUE },
+		disconnect: { similiarity: Number.MAX_VALUE }
 	};
 
 	handler.files.paths.forEach(p => {
 		const currentIntegration = require(p.replace(".js", "")).default;
 
 		FUN_NAMES.forEach(funName => {
-			let similiarity = (
-				getSimiliarity(
+			let similiarity =
+				(getSimiliarity(
 					integration[funName].toString(),
 					currentIntegration[funName].toString()
-				) * 100
-			).toFixed(0);
-
-			if (
-				Object.keys(bestMatches[funName]).length === 0 ||
-				similiarity < bestMatches[funName].similiarity
-			)
+				) +
+					//get Inverse value but use as a third of total value
+					getSimiliarity(
+						currentIntegration[funName].toString(),
+						integration[funName].toString()
+					)) *
+				100;
+			if (similiarity < bestMatches[funName].similiarity) {
 				bestMatches[funName] = {
 					name: p
 						.split("/")
@@ -35,6 +36,7 @@ const compareIntegration = integration => {
 					similiarity,
 					body: currentIntegration[funName].toString()
 				};
+			}
 		});
 		delete require.cache[require(p.replace(".js", ""))];
 	});

@@ -256,78 +256,64 @@ export class ExecutionResults extends Component {
 	}
 
 	codeSimiliarityResults() {
-		return (
-			<div>
-				<h1>Code Similiarity</h1>
-				<label>Connect Similiarity</label>
-				<p>
-					The integration with the most similiar connect method is &nbsp;
-					<b>{this.state.results.codeSimiliarity.connect.name}</b>. Which we
-					thought was{" "}
-					{getSimiliarityText(
-						this.state.results.codeSimiliarity.connect.similiarity
-					)}{" "}
-					similiar to your code.
-				</p>
-				<Gauge
-					value={100 - this.state.results.codeSimiliarity.connect.similiarity}
-					width={200}
-					height={120}
-					label="Connect Similiarity"
-				/>
-				<p>{}</p>
-				<pre>{this.state.results.codeSimiliarity.connect.body}</pre>
-				<label>Collect Similiarity</label>
-				<p>
-					The integration with the most similiar collect method is &nbsp;
-					<b>{this.state.results.codeSimiliarity.collect.name}</b>. Which we
-					thought was &nbsp;
-					{getSimiliarityText(
-						this.state.results.codeSimiliarity.collect.similiarity
-					)}
-					&nbsp; to your code.
-				</p>
-				<Gauge
-					value={100 - this.state.results.codeSimiliarity.collect.similiarity}
-					width={200}
-					height={120}
-					label="Collect Similiarity"
-				/>
-				<pre>{this.state.results.codeSimiliarity.collect.body}</pre>
-				<label>Disconnect Similiarity</label>
-				<p>
-					The integration with the most similiar disconnect method is &nbsp;
-					<b>{this.state.results.codeSimiliarity.disconnect.name}</b>. Which we
-					thought was &nbsp;
-					{getSimiliarityText(
-						this.state.results.codeSimiliarity.disconnect.similiarity
-					)}
-					&nbsp; similiar to your code.
-				</p>
-				<Gauge
-					value={
-						100 - this.state.results.codeSimiliarity.disconnect.similiarity
-					}
-					width={200}
-					height={120}
-					label="Disconnect Similiarity"
-				/>
-				<pre>{this.state.results.codeSimiliarity.disconnect.body}</pre>
-			</div>
-		);
-
-		function getSimiliarityText(similiarityValue) {
-			console.log(similiarityValue);
+		const getSimiliarityText = similiarityValue => {
 			if (similiarityValue === 0) return "identical";
 			else if (similiarityValue < 10) return "extremely similiar";
 			else if (similiarityValue < 20) return "very similiar";
 			else if (similiarityValue < 30) return "similiar";
 			else if (similiarityValue < 50) return "somewhat similiar";
 			else if (similiarityValue < 70)
-				return "quite different, but shares some similariies";
-			else if (similiarityValue > 100)
-				return "very different shares almost no similiarities";
-		}
+				return "quite different, but to share some similarities";
+			else if (similiarityValue < 150)
+				return "quite different, but to share some similarities";
+			else return "very different shares almost no similiarities";
+		};
+
+		const frmtGaugeVal = v => (100 - v).toFixed();
+		const makePanel = funName => (
+			<div className="panel panel-default">
+				<div className="panel-header title">
+					<h2>
+						Similiarity: <b>{funName}</b>
+					</h2>
+				</div>
+				<div className="panel panel-body">
+					<p>
+						Most similiar integration:&nbsp;
+						<b>{this.state.results.codeSimiliarity[funName].name}</b>.
+					</p>
+					<p>
+						Which we judged to be&nbsp;
+						<b>
+							{getSimiliarityText(
+								this.state.results.codeSimiliarity[funName].similiarity
+							)}
+						</b>
+						&nbsp;to your code.
+					</p>
+					<div className="gauge">
+						<Gauge
+							value={frmtGaugeVal(
+								this.state.results.codeSimiliarity[funName].similiarity
+							)}
+							color="#4e7899"
+							width={200}
+							height={150}
+							label={funName}
+						/>
+					</div>
+					<pre>{this.state.results.codeSimiliarity[funName].body}}</pre>
+				</div>
+			</div>
+		);
+
+		return (
+			<div>
+				{makePanel("connect")}
+				{makePanel("collect")}
+				{makePanel("disconnect")}
+			</div>
+		);
 	}
 
 	configureRunModal() {
