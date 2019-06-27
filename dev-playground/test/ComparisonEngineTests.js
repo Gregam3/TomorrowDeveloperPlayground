@@ -267,6 +267,18 @@ describe("\nStructurally Identical Functions", () => {
 
 		it("should return 0", () => assert(engine.getSimiliarity(a, b) === 0));
 	});
+
+	context(testIndex++ + ". Logless code vs logging code", () => {
+		const a = `function a() {
+                        console.log("test");
+                        let x = 10;
+                }`;
+		const b = `function a() {
+                    let x = 10;
+                }`;
+
+		it("should return 0", () => assert(engine.getSimiliarity(a, b) === 0));
+	});
 });
 
 describe("\nStructurally Similiar Functions", () => {
@@ -382,130 +394,6 @@ describe("\nLength Coefficient Tests", () => {
 
 			it("a-b similiarity less than a1-b1 similiarity", () =>
 				assert(engine.getSimiliarity(a, b) < engine.getSimiliarity(a1, b1)));
-		}
-	);
-});
-
-describe("\nMisc Tests", () => {
-	let testIndex = 1;
-	context(
-		testIndex++ + ". Identical methods expect for a single line console.log",
-		() => {
-			const a = `async function collect(state, { logWarning }) {
-                const {
-                    username, password, meteringPointId, priceRegion,
-                } = state;
-
-                const startDate = state.lastFullyCollectedDay || moment().subtract(1, 'month').toISOString();
-                const endDate = moment().toISOString();
-
-                const response = await getHourlyConsumption(
-                    username, password, meteringPointId,
-                    startDate, endDate,
-                );
-
-                // Note: some entries contain more than 24 values.
-                // that's because they cover several days
-                // we need to separate those manually
-l
-                const { locationLon, locationLat } = REGION_TO_LOCATION[priceRegion];
-
-                let x = 10;
-
-                /*
-                    Note: right now days are defined as UTC days.
-                    We should probably use local time to define days
-                */
-
-                const activities = Object.entries(groupBy(response, d => moment(d.date).startOf('day').toISOString()))
-                    .map(([k, values]) => ({
-                    id: \`barry\${k}\`,
-                    datetime: moment(k).toDate(),
-                    activityType: ACTIVITY_TYPE_ELECTRICITY,
-                    energyWattHours: values
-                        .map(x => x.value * 1000.0) // kWh -> Wh
-                        .reduce((a, b) => a + b, 0),
-                    durationHours: values.length,
-                    hourlyEnergyWattHours: values.map(x => x.value * 1000.0),
-                    locationLon,
-                    locationLat,
-                    }));
-                activities
-                    .filter(d => d.durationHours !== 24)
-                    .forEach(d => logWarning(\`Ignoring activity from \${d.datetime.toISOString()} with \${d.durationHours} hours instead of 24\`));
-
-                if (!activities.length) {
-                    return { activities: [] };
-                }
-
-                // Subtract one day to make sure we always have a full day
-                const lastFullyCollectedDay = moment(activities[activities.length - 1].datetime)
-                    .subtract(1, 'day').toISOString();
-
-                return {
-                    activities: activities.filter(d => d.durationHours === 24),
-                    state: { ...state, lastFullyCollectedDay },
-                };
-                }`;
-			const b = `async function collect(state, { logWarning }) {
-                            const {
-                                username, password, meteringPointId, priceRegion,
-                            } = state;
-
-                            const startDate = state.lastFullyCollectedDay || moment().subtract(1, 'month').toISOString();
-                            const endDate = moment().toISOString();
-
-                            const response = await getHourlyConsumption(
-                                username, password, meteringPointId,
-                                startDate, endDate,
-                            );
-
-                            // Note: some entries contain more than 24 values.
-                            // that's because they cover several days
-                            // we need to separate those manually
-
-                            const { locationLon, locationLat } = REGION_TO_LOCATION[priceRegion];
-
-                            /*
-                                Note: right now days are defined as UTC days.
-                                We should probably use local time to define days
-                            */
-
-                            const activities = Object.entries(groupBy(response, d => moment(d.date).startOf('day').toISOString()))
-                                .map(([k, values]) => ({
-                                id: \`barry\${k}\`,
-                                datetime: moment(k).toDate(),
-                                activityType: ACTIVITY_TYPE_ELECTRICITY,
-                                energyWattHours: values
-                                    .map(x => x.value * 1000.0) // kWh -> Wh
-                                    .reduce((a, b) => a + b, 0),
-                                durationHours: values.length,
-                                hourlyEnergyWattHours: values.map(x => x.value * 1000.0),
-                                locationLon,
-                                locationLat,
-                                }));
-                            activities
-                                .filter(d => d.durationHours !== 24)
-                                .forEach(d => logWarning(\`Ignoring activity from \${d.datetime.toISOString()} with \${d.durationHours} hours instead of 24\`));
-
-                            if (!activities.length) {
-                                return { activities: [] };
-                            }
-
-                            // Subtract one day to make sure we always have a full day
-                            const lastFullyCollectedDay = moment(activities[activities.length - 1].datetime)
-                                .subtract(1, 'day').toISOString();
-
-                            return {
-                                activities: activities.filter(d => d.durationHours === 24),
-                                state: { ...state, lastFullyCollectedDay },
-                            };
-                            }`;
-
-			console.log(engine.getSimiliarity(a, b));
-
-			it("Similiarity should be under 10", () =>
-				assert(engine.getSimiliarity(a, b) < 10));
 		}
 	);
 });

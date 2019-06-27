@@ -55,6 +55,13 @@ const getSimiliarity = (baseFunStr, compareFunStr) => {
 				.program.body[0].body.body.map(treeSurgeon.elimateNodeDetails)
 		);
 
+	console.log(
+		//Gets the function body
+		parser.parse(baseFunStr, {
+			sourceType: "module"
+		}).program.body[0].body.body
+	);
+
 	return compareFunAST(getFlatAST(baseFunStr), getFlatAST(compareFunStr));
 };
 
