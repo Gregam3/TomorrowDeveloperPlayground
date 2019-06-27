@@ -1,5 +1,4 @@
-const INITIAL_CODE =
-  `import logger from '../../Logger';
+const INITIAL_CODE = `import logger from '../../Logger';
 
 //Parameters must be methods
 async function connect(requestLogin, requestWebView) {
@@ -17,6 +16,11 @@ async function connect(requestLogin, requestWebView) {
 //Clear state after completion, this can often be left empty
 function disconnect() {
   return {};
+}
+
+
+function a() {
+  returns 3 *
 }
 
 //Using State retrieved from login fetch data 

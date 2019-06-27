@@ -5,15 +5,19 @@ const handler = require("./CodeHandler");
 
 const FUN_NAMES = ["connect", "collect", "disconnect"];
 
-const compareIntegration = integration => {
+const compareIntegration = integrationCode => {
 	let bestMatches = {
 		connect: { similiarity: Number.MAX_VALUE },
 		collect: { similiarity: Number.MAX_VALUE },
 		disconnect: { similiarity: Number.MAX_VALUE }
 	};
 
-	handler.files.paths.forEach(p => {
-		const currentIntegration = require(p.replace(".js", "")).default;
+	const integration = extractTopLevelFuns(integrationCode);
+
+	return integration;
+
+	Object.keys(handler.files.all).forEach(fileName => {
+		const currentIntegration = extractTopLevelFuns(handler.files.all[fileName]);
 
 		FUN_NAMES.forEach(funName => {
 			let similiarity =
@@ -29,7 +33,7 @@ const compareIntegration = integration => {
 				100;
 			if (similiarity < bestMatches[funName].similiarity) {
 				bestMatches[funName] = {
-					name: p
+					name: fileName
 						.split("/")
 						.slice(-1)
 						.pop(),
@@ -38,29 +42,33 @@ const compareIntegration = integration => {
 				};
 			}
 		});
-		delete require.cache[require(p.replace(".js", ""))];
 	});
 
 	return bestMatches;
 };
 
+const parse = code =>
+	parser.parse(code, {
+		sourceType: "module"
+	}).program.body;
+
+const extractTopLevelFuns = code => {
+	let funs = {};
+
+	parse(code)
+		.filter(node => node.type === "FunctionDeclaration")
+		.forEach(
+			fnNode => (funs[fnNode.id.name] = treeSurgeon.elimateNodeDetails(fnNode))
+		);
+
+	return funs;
+};
+
 const getSimiliarity = (baseFunStr, compareFunStr) => {
 	const getFlatAST = code =>
 		treeSurgeon.flattenAST(
-			parser
-				.parse(code, {
-					sourceType: "module"
-				})
-				//Gets the function body
-				.program.body[0].body.body.map(treeSurgeon.elimateNodeDetails)
+			parse(code).body.body.map(treeSurgeon.elimateNodeDetails)
 		);
-
-	console.log(
-		//Gets the function body
-		parser.parse(baseFunStr, {
-			sourceType: "module"
-		}).program.body[0].body.body
-	);
 
 	return compareFunAST(getFlatAST(baseFunStr), getFlatAST(compareFunStr));
 };

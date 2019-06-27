@@ -40,7 +40,7 @@ app.get("/test", (err, res) => {
 	res.status(200);
 	res.json(
 		comparisonEngine.compareIntegration(
-			"./integration-test/d47117a0-9293-11e9-ad86-49d0fe50ea66/integration"
+			handler.readCode("d47117a0-9293-11e9-ad86-49d0fe50ea66")
 		)
 	);
 	res.end();

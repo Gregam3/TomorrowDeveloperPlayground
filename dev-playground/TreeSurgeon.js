@@ -8,7 +8,7 @@ const ALWAYS_DEEP_NODE_TYPES = [
 	"FunctionDeclaration"
 ];
 
-const flattenAST = nodes => {
+const flattenAST = (nodes, funs) => {
 	let flatNodes = [];
 
 	nodes.forEach(node => {
