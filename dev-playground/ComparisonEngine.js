@@ -1,6 +1,6 @@
 const parser = require("@babel/parser");
 const deepDiff = require("deep-diff").diff;
-const treeSurgeon = require("./TreeSurgeon");
+const TreeSurgeon = require("./TreeSurgeon");
 const handler = require("./CodeHandler");
 
 const FUN_NAMES = ["connect", "collect", "disconnect"];
@@ -12,37 +12,55 @@ const compareIntegration = integrationCode => {
 		disconnect: { similiarity: Number.MAX_VALUE }
 	};
 
-	const integration = extractTopLevelFuns(integrationCode);
+	const transformFuns = funs => {
+		let integration = {};
 
-	return integration;
+		Object.keys(funs).forEach(
+			fn =>
+				(integration[fn] = TreeSurgeon.elimateNodeDetails(
+					TreeSurgeon.flattenAST(funs[fn].body.body, funs)
+				))
+		);
+
+		return integration;
+	};
+
+	let integration = transformFuns(extractTopLevelFuns(integrationCode));
 
 	Object.keys(handler.files.all).forEach(fileName => {
 		const currentIntegration = extractTopLevelFuns(handler.files.all[fileName]);
 
 		FUN_NAMES.forEach(funName => {
 			let similiarity =
-				(getSimiliarity(
-					integration[funName].toString(),
-					currentIntegration[funName].toString()
-				) +
+				(compareFunASTs(integration[funName], currentIntegration[funName]) +
 					//get Inverse value but use as a third of total value
-					getSimiliarity(
-						currentIntegration[funName].toString(),
-						integration[funName].toString()
-					)) *
+					compareFunASTs(currentIntegration[funName], integration[funName])) *
 				100;
 			if (similiarity < bestMatches[funName].similiarity) {
 				bestMatches[funName] = {
-					name: fileName
-						.split("/")
-						.slice(-1)
-						.pop(),
-					similiarity,
-					body: currentIntegration[funName].toString()
+					name: fileName,
+					similiarity
 				};
 			}
 		});
 	});
+
+	//Import modules to fetch original function code
+	let importedModules = [];
+
+	Object.keys(bestMatches).forEach(fnM => {
+		handler.files.paths
+			.filter(p => p.endsWith(bestMatches[fnM].name))
+			//forEach should only run once
+			.forEach(p => {
+				const path = p.replace(".js", "");
+				bestMatches[fnM].body = require(path).default[fnM].toString();
+				importedModules.push(path);
+			});
+	});
+
+	//Delete modules after function code is fetched
+	importedModules.forEach(m => delete require.cache[require(m)]);
 
 	return bestMatches;
 };
@@ -58,7 +76,7 @@ const extractTopLevelFuns = code => {
 	parse(code)
 		.filter(node => node.type === "FunctionDeclaration")
 		.forEach(
-			fnNode => (funs[fnNode.id.name] = treeSurgeon.elimateNodeDetails(fnNode))
+			fnNode => (funs[fnNode.id.name] = TreeSurgeon.elimateNodeDetails(fnNode))
 		);
 
 	return funs;
@@ -66,16 +84,16 @@ const extractTopLevelFuns = code => {
 
 const getSimiliarity = (baseFunStr, compareFunStr) => {
 	const getFlatAST = code =>
-		treeSurgeon.flattenAST(
-			parse(code).body.body.map(treeSurgeon.elimateNodeDetails)
+		TreeSurgeon.flattenAST(
+			parse(code).body.body.map(TreeSurgeon.elimateNodeDetails)
 		);
 
-	return compareFunAST(getFlatAST(baseFunStr), getFlatAST(compareFunStr));
+	return compareFunASTs(getFlatAST(baseFunStr), getFlatAST(compareFunStr));
 };
 
 const DIFF_VALUES = { D: 10, N: 10, A: 5, E: 2.5 };
 
-const compareFunAST = (nodes, compareNodes) => {
+const compareFunASTs = (nodes, compareNodes) => {
 	//Array used to retrieve range to map
 	let matches = [...Array(nodes.length).keys()].map(node => {
 		return {
