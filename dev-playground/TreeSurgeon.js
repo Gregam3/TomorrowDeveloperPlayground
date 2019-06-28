@@ -8,16 +8,29 @@ const ALWAYS_DEEP_NODE_TYPES = [
 	"FunctionDeclaration"
 ];
 
+//CallExpression
+//expression.callee.name
+
 const flattenAST = (nodes, funs) => {
 	let flatNodes = [];
 
+	//TODO simplify
 	nodes.forEach(node => {
 		if (ALWAYS_DEEP_NODE_TYPES.includes(node.type)) {
 			let leafNodes = extractLeafNodes(node);
 			flatNodes.push(leafNodes.node);
-			flatNodes.push(...flattenAST(leafNodes.body));
+			flatNodes.push(...flattenAST(leafNodes.body, funs));
 		} else if (node.type === "ExpressionStatement") {
 			if (
+				node.expression.type === "CallExpression" &&
+				node.expression.callee !== undefined
+			) {
+				if (Object.keys(funs).includes(node.expression.callee.name))
+					flatNodes.push(
+						...flattenAST(funs[node.expression.callee.name].body.body, funs)
+					);
+				else flatNodes.push(node);
+			} else if (
 				!node.expression.arguments ||
 				node.expression.arguments.every(
 					a => a.type !== "ArrowFunctionExpression"
@@ -33,7 +46,7 @@ const flattenAST = (nodes, funs) => {
 						aNode.body.hasOwnProperty("body")
 					)
 						//.body for => and .body.body for => {}
-						flatNodes.push(...flattenAST(aNode.body.body));
+						flatNodes.push(...flattenAST(aNode.body.body, funs));
 					else flatNodes.push(aNode);
 				});
 			}
@@ -75,15 +88,15 @@ const DETAIL_KEYS = [
 	"value"
 ];
 
-const elimateNodeDetails = node => {
+const eliminateNodeDetails = node => {
 	if (node)
 		Object.keys(node).forEach(k => {
 			if (DETAIL_KEYS.includes(k)) delete node[k];
-			else if (typeof node[k] === "object") elimateNodeDetails(node[k]);
+			else if (typeof node[k] === "object") eliminateNodeDetails(node[k]);
 		});
 
 	return node;
 };
 
 module.exports.flattenAST = flattenAST;
-module.exports.elimateNodeDetails = elimateNodeDetails;
+module.exports.eliminateNodeDetails = eliminateNodeDetails;

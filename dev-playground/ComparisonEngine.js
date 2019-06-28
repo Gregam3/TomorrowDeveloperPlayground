@@ -14,10 +14,9 @@ const compareIntegration = integrationCode => {
 
 	const transformFuns = funs => {
 		let integration = {};
-
 		Object.keys(funs).forEach(
 			fn =>
-				(integration[fn] = TreeSurgeon.elimateNodeDetails(
+				(integration[fn] = TreeSurgeon.eliminateNodeDetails(
 					TreeSurgeon.flattenAST(funs[fn].body.body, funs)
 				))
 		);
@@ -38,8 +37,6 @@ const compareIntegration = integrationCode => {
 					//get Inverse value but use as a third of total value
 					compareFunASTs(currentIntegration[funName], integration[funName])) *
 				100;
-
-			console.log(fileName, funName, similiarity, integration[funName]);
 
 			if (similiarity < bestMatches[funName].similiarity) {
 				bestMatches[funName] = {
@@ -80,17 +77,16 @@ const extractTopLevelFuns = code => {
 
 	parse(code)
 		.filter(node => node.type === "FunctionDeclaration")
-		.forEach(
-			fnNode => (funs[fnNode.id.name] = TreeSurgeon.elimateNodeDetails(fnNode))
-		);
+		.forEach(fnNode => (funs[fnNode.id.name] = fnNode));
 
 	return funs;
 };
 
+//Used for easy testing
 const getSimiliarity = (baseFunStr, compareFunStr) => {
 	const getFlatAST = code =>
 		TreeSurgeon.flattenAST(
-			parse(code).body.body.map(TreeSurgeon.elimateNodeDetails)
+			parse(code).body.body.map(TreeSurgeon.eliminateNodeDetails)
 		);
 
 	return compareFunASTs(getFlatAST(baseFunStr), getFlatAST(compareFunStr));
