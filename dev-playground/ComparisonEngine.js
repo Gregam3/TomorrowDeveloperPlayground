@@ -28,7 +28,9 @@ const compareIntegration = integrationCode => {
 	let integration = transformFuns(extractTopLevelFuns(integrationCode));
 
 	Object.keys(handler.files.all).forEach(fileName => {
-		const currentIntegration = extractTopLevelFuns(handler.files.all[fileName]);
+		const currentIntegration = transformFuns(
+			extractTopLevelFuns(handler.files.all[fileName])
+		);
 
 		FUN_NAMES.forEach(funName => {
 			let similiarity =
@@ -36,6 +38,9 @@ const compareIntegration = integrationCode => {
 					//get Inverse value but use as a third of total value
 					compareFunASTs(currentIntegration[funName], integration[funName])) *
 				100;
+
+			console.log(fileName, funName, similiarity, integration[funName]);
+
 			if (similiarity < bestMatches[funName].similiarity) {
 				bestMatches[funName] = {
 					name: fileName,
