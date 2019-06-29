@@ -26,6 +26,8 @@ const compareIntegration = integrationCode => {
 
 	let integration = transformFuns(extractTopLevelFuns(integrationCode));
 
+	return integration;
+
 	Object.keys(handler.files.all).forEach(fileName => {
 		const currentIntegration = transformFuns(
 			extractTopLevelFuns(handler.files.all[fileName])

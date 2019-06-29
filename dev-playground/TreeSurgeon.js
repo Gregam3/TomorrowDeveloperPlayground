@@ -57,7 +57,7 @@ const flattenAST = (nodes, funs) => {
 };
 
 const extractLeafNodes = node => {
-	if (node.type === "IfStatement") {
+	if (node.type === "IfStatement" && node.consequent) {
 		const ifBody = node.consequent.hasOwnProperty("body")
 			? deepClone(node.consequent.body)
 			: [deepClone(node.consequent)];
@@ -67,13 +67,15 @@ const extractLeafNodes = node => {
 		const args = deepClone(node.expression.arguments);
 		delete node.expression;
 		return { node, body: args };
+	} else if (node.body) {
+		const body = node.body.hasOwnProperty("body")
+			? deepClone(node.body.body)
+			: [deepClone(node.body)];
+		delete node.body;
+		return { node, body };
 	}
 
-	const body = node.body.hasOwnProperty("body")
-		? deepClone(node.body.body)
-		: [deepClone(node.body)];
-	delete node.body;
-	return { node, body };
+	return { node, body: [] };
 };
 
 const DETAIL_KEYS = [

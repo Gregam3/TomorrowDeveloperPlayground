@@ -20,7 +20,7 @@ function disconnect() {
 
 
 function a() {
-  returns 3 *
+  return 3 *
 }
 
 //Using State retrieved from login fetch data 
