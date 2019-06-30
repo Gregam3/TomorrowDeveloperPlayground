@@ -42,10 +42,12 @@ const processDeclarations = (declarations, funs) => {
 	let flatNodes = [];
 
 	declarations.forEach(d => {
-		if (d.init && d.init.type === "CallExpression") {
-			console.log("here");
+		if (
+			d.init &&
+			d.init.type === "CallExpression" &&
+			Object.keys(funs).includes(d.init.callee.name)
+		)
 			flatNodes.push(...flattenAST(funs[d.init.callee.name].body.body, funs));
-		}
 	});
 
 	return flatNodes;
@@ -106,6 +108,24 @@ const extractLeafNodes = node => {
 	return { node, body: [] };
 };
 
+const eliminateLoggingNodes = nodes => {
+	const isBasicOrNewLog = node =>
+		node.expression.callee &&
+		node.expression.callee.property &&
+		node.expression.callee.property.name === "log";
+
+	const isOldLog = node =>
+		node.expression &&
+		node.expression.callee &&
+		node.expression.callee.name &&
+		node.expression.callee.name.startsWith("log");
+
+	return nodes.filter(
+		n =>
+			n.type !== "ExpressionStatement" || (!isBasicOrNewLog(n) && !isOldLog(n))
+	);
+};
+
 const DETAIL_KEYS = [
 	"name",
 	"identifierName",
@@ -130,3 +150,4 @@ const eliminateNodeDetails = node => {
 
 module.exports.flattenAST = flattenAST;
 module.exports.eliminateNodeDetails = eliminateNodeDetails;
+module.exports.eliminateLoggingNodes = eliminateLoggingNodes;

@@ -17,7 +17,9 @@ const compareIntegration = integrationCode => {
 		Object.keys(funs).forEach(
 			fn =>
 				(integration[fn] = TreeSurgeon.eliminateNodeDetails(
-					TreeSurgeon.flattenAST(funs[fn].body.body, funs)
+					TreeSurgeon.eliminateLoggingNodes(
+						TreeSurgeon.flattenAST(funs[fn].body.body, funs)
+					)
 				))
 		);
 
@@ -25,8 +27,6 @@ const compareIntegration = integrationCode => {
 	};
 
 	let integration = transformFuns(extractTopLevelFuns(integrationCode));
-
-	return integration;
 
 	Object.keys(handler.files.all).forEach(fileName => {
 		const currentIntegration = transformFuns(
