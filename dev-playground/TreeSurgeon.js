@@ -17,7 +17,10 @@ const flattenAST = (nodes, funs) => {
 	nodes.forEach(node => {
 		if (DEEP_NODE_TYPES.includes(node.type))
 			flatNodes.push(...processDefaultDeepNode(node, funs));
-		else if (node.type === "ExpressionStatement")
+		else if (
+			node.type === "ExpressionStatement" ||
+			node.type === "CallExpression"
+		)
 			flatNodes.push(...processExpression(node, funs));
 		else if (node.type === "VariableDeclaration") {
 			flatNodes.push(node);
@@ -56,33 +59,53 @@ const processDeclarations = (declarations, funs) => {
 const processExpression = (node, funs) => {
 	let flatNodes = [];
 
-	if (
+	const processFunctionCall = (name, fns) => {
+		if (Object.keys(fns).includes(name)) {
+			flatNodes.push(...flattenAST(fns[name].body.body, fns));
+		}
+	};
+
+	if (node.type === "CallExpression") {
+		processFunctionCall(node.callee.name, funs);
+	} else if (
 		node.expression.type === "CallExpression" &&
 		node.expression.callee !== undefined
 	) {
-		if (Object.keys(funs).includes(node.expression.callee.name))
-			flatNodes.push(
-				...flattenAST(funs[node.expression.callee.name].body.body, funs)
-			);
-		else flatNodes.push(node);
-	} else if (
-		!node.expression.arguments ||
-		node.expression.arguments.every(a => a.type !== "ArrowFunctionExpression")
-	) {
 		flatNodes.push(node);
-	} else {
+		processFunctionCall(node.expression.callee.name, funs);
+	} else if (
+		node.expression.arguments &&
+		node.expression.arguments.filter(a => a.type !== "ArrowFunctionExpression")
+			.length > 0
+	) {
 		let leafNodes = extractLeafNodes(node);
 		flatNodes.push(leafNodes.node);
-		leafNodes.body.forEach(aNode => {
-			if (
-				aNode.type === "ArrowFunctionExpression" &&
-				aNode.body.hasOwnProperty("body")
-			)
-				//.body for => and .body.body for => {}
-				flatNodes.push(...flattenAST(aNode.body.body, funs));
-			else flatNodes.push(aNode);
-		});
+	} else {
+		flatNodes.push(node);
 	}
+
+	if (node.expression && node.expression.arguments) {
+		flatNodes.push(...processArguments(node.expression.arguments, funs));
+	}
+
+	return flatNodes;
+};
+
+const processArguments = (args, funs) => {
+	let flatNodes = [];
+
+	args.forEach(aNode => {
+		if (
+			aNode.type === "ArrowFunctionExpression" &&
+			aNode.body.hasOwnProperty("body")
+		)
+			//.body for => and .body.body for => {}
+			flatNodes.push(...flattenAST(aNode.body.body, funs));
+		else if (aNode.type === "CallExpression") {
+			flatNodes.push(...flattenAST([aNode], funs));
+		} else flatNodes.push(aNode);
+	});
+
 	return flatNodes;
 };
 
