@@ -14,11 +14,15 @@ const DEEP_NODE_TYPES = [
 const flattenAST = (nodes, funs) => {
 	let flatNodes = [];
 
-	//TODO simplify
 	nodes.forEach(node => {
-		if (DEEP_NODE_TYPES.includes(node.type)) processDefaultDeepNode(node, funs);
-		else if (node.type === "ExpressionStatement") processExpression(node, funs);
-		else flatNodes.push(node);
+		if (DEEP_NODE_TYPES.includes(node.type))
+			flatNodes.push(...processDefaultDeepNode(node, funs));
+		else if (node.type === "ExpressionStatement")
+			flatNodes.push(...processExpression(node, funs));
+		else if (node.type === "VariableDeclaration") {
+			flatNodes.push(node);
+			flatNodes.push(...processDeclarations(node.declarations, funs));
+		} else flatNodes.push(node);
 	});
 
 	return flatNodes;
@@ -30,6 +34,19 @@ const processDefaultDeepNode = (node, funs) => {
 	let leafNodes = extractLeafNodes(node);
 	flatNodes.push(leafNodes.node);
 	flatNodes.push(...flattenAST(leafNodes.body, funs));
+
+	return flatNodes;
+};
+
+const processDeclarations = (declarations, funs) => {
+	let flatNodes = [];
+
+	declarations.forEach(d => {
+		if (d.init && d.init.type === "CallExpression") {
+			console.log("here");
+			flatNodes.push(...flattenAST(funs[d.init.callee.name].body.body, funs));
+		}
+	});
 
 	return flatNodes;
 };
