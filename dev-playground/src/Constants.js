@@ -18,11 +18,6 @@ function disconnect() {
   return {};
 }
 
-
-function a() {
-  return 3 *
-}
-
 //Using State retrieved from login fetch data 
 async function collect(state, { logWarning }) {
   return { activities: [], state };

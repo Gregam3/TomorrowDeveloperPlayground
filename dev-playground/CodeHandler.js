@@ -76,7 +76,7 @@ async function evaluate(code, authDetails, env, id, stateInjection) {
 	return writeEnv().then(() =>
 		writeCode().then(() =>
 			importIntegration().then(() =>
-				assessFunctions(stub, authDetails, stateInjection)
+				assessFunctions(stub, code, authDetails, stateInjection)
 			)
 		)
 	);
@@ -92,7 +92,7 @@ function objectToCode(env) {
 	);
 }
 
-async function assessFunctions(stub, authDetails, stateInjection) {
+async function assessFunctions(stub, code, authDetails, stateInjection) {
 	const requestLogin =
 		authDetails.username !== null && authDetails.password !== null
 			? () => {
@@ -134,7 +134,7 @@ async function assessFunctions(stub, authDetails, stateInjection) {
 							  a.energyWattHours * 0.00028307
 					),
 					logs: logs.popLogs(),
-					codeSimiliarity: comparisonEngine.compareIntegration(stub)
+					codeSimiliarity: comparisonEngine.compareIntegration(code)
 				}
 			);
 		} else {
@@ -157,7 +157,7 @@ async function assessFunctions(stub, authDetails, stateInjection) {
 							  a.energyWattHours * 0.00028307
 					),
 					logs: logs.popLogs(),
-					codeSimiliarity: comparisonEngine.compareIntegration(stub)
+					codeSimiliarity: comparisonEngine.compareIntegration(code)
 				}
 			);
 		}
