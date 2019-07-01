@@ -302,7 +302,7 @@ export class ExecutionResults extends Component {
 							label={funName}
 						/>
 					</div>
-					<pre>{this.state.results.codeSimiliarity[funName].body}}</pre>
+					<pre>{this.state.results.codeSimiliarity[funName].body}</pre>
 				</div>
 			</div>
 		);

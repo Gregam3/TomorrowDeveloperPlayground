@@ -26,9 +26,11 @@ const compareIntegration = integrationCode => {
 		return integration;
 	};
 
-	console.log(integrationCode.length);
+	// return extractTopLevelFuns(integrationCode);
 
 	let integration = transformFuns(extractTopLevelFuns(integrationCode));
+
+	// return integration;
 
 	Object.keys(handler.files.all).forEach(fileName => {
 		const currentIntegration = transformFuns(

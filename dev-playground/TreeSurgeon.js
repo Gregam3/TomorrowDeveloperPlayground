@@ -19,7 +19,8 @@ const flattenAST = (nodes, funs) => {
 			flatNodes.push(...processDefaultDeepNode(node, funs));
 		else if (
 			node.type === "ExpressionStatement" ||
-			node.type === "CallExpression"
+			node.type === "CallExpression" ||
+			node.type === "AwaitExpression"
 		)
 			flatNodes.push(...processExpression(node, funs));
 		else if (node.type === "VariableDeclaration") {
@@ -44,30 +45,45 @@ const processDefaultDeepNode = (node, funs) => {
 const processDeclarations = (declarations, funs) => {
 	let flatNodes = [];
 
-	declarations.forEach(d => {
-		if (
-			d.init &&
-			d.init.type === "CallExpression" &&
-			Object.keys(funs).includes(d.init.callee.name)
-		)
-			flatNodes.push(...flattenAST(funs[d.init.callee.name].body.body, funs));
-	});
+	declarations
+		.filter(d => d.init)
+		.forEach(d => {
+			//Get callexpression inside await
+			if (
+				d.init.type === "AwaitExpression" &&
+				Object.keys(funs).includes(d.init.argument.callee.name)
+			)
+				flatNodes.push(
+					...flattenAST(funs[d.init.argument.callee.name].body.body, funs)
+				);
+			else if (
+				d.init.type === "CallExpression" &&
+				Object.keys(funs).includes(d.init.callee.name)
+			)
+				flatNodes.push(...flattenAST(funs[d.init.callee.name].body.body, funs));
+		});
 
 	return flatNodes;
 };
 
+//TODO maybe find elegant switch instead of huge if chain
 const processExpression = (node, funs) => {
 	let flatNodes = [];
 
+	//TODO remove fns as parameter
 	const processFunctionCall = (name, fns) => {
 		if (Object.keys(fns).includes(name)) {
 			flatNodes.push(...flattenAST(fns[name].body.body, fns));
 		}
 	};
 
-	if (node.type === "CallExpression") {
+	if (node.type === "AwaitExpression")
+		processFunctionCall(node.argument.callee.name, funs);
+	else if (node.type === "CallExpression")
 		processFunctionCall(node.callee.name, funs);
-	} else if (
+	else if (node.expression.type === "AwaitExpression")
+		processFunctionCall(node.expression.argument.callee.name, funs);
+	else if (
 		node.expression.type === "CallExpression" &&
 		node.expression.callee !== undefined
 	) {
@@ -80,13 +96,10 @@ const processExpression = (node, funs) => {
 	) {
 		let leafNodes = extractLeafNodes(node);
 		flatNodes.push(leafNodes.node);
-	} else {
-		flatNodes.push(node);
-	}
+	} else flatNodes.push(node);
 
-	if (node.expression && node.expression.arguments) {
+	if (node.expression && node.expression.arguments)
 		flatNodes.push(...processArguments(node.expression.arguments, funs));
-	}
 
 	return flatNodes;
 };
