@@ -258,18 +258,15 @@ export class ExecutionResults extends Component {
 	codeSimiliarityResults() {
 		const getSimiliarityText = similiarityValue => {
 			if (similiarityValue === 0) return "identical";
-			else if (similiarityValue < 10) return "extremely similiar";
-			else if (similiarityValue < 20) return "very similiar";
-			else if (similiarityValue < 30) return "similiar";
+			else if (similiarityValue < 10) return "very similiar";
+			else if (similiarityValue < 20) return "similiar";
+			else if (similiarityValue < 30) return "quite similiar";
 			else if (similiarityValue < 50) return "somewhat similiar";
-			else if (similiarityValue < 70)
-				return "quite different, but to share some similarities";
-			else if (similiarityValue < 150)
-				return "quite different, but to share some similarities";
-			else return "very different shares almost no similiarities";
+			else if (similiarityValue < 75) return "quite dissimiliar";
+			else return "very dissimiliar";
 		};
 
-		const frmtGaugeVal = v => (100 - v).toFixed();
+		const frmtGaugeVal = v => (v > 100 ? 0 : (100 - v).toFixed());
 		const makePanel = funName => (
 			<div className="panel panel-default">
 				<div className="panel-header title">

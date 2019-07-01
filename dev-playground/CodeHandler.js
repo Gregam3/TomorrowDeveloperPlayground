@@ -1,5 +1,4 @@
 const server = require("./server");
-const logs = require("./Logger");
 const fs = require("fs");
 const path = require("path");
 const definitions = require("../tmrowapp-contrib/definitions");
@@ -8,9 +7,17 @@ const models = {
 };
 const comparisonEngine = require("./ComparisonEngine");
 
-const FUN_NAMES = ["connect", "collect", "disconnect", "config"];
+const EXPORT_NAMES = [
+	"connect",
+	"collect",
+	"disconnect",
+	"config",
+	"loggerExport"
+];
 
-const exportCode = `\n\nexport {${FUN_NAMES.join(",")}};`;
+//first line necessary as logger can be null, logger: logger is not an alternative.
+const exportCode = `\n\nconst loggerExport = typeof logger !== "undefined" ? logger : undefined;
+ \nexport {${EXPORT_NAMES.join(",")}};`;
 let stub = null;
 
 async function evaluate(code, authDetails, env, id, stateInjection) {
@@ -133,7 +140,7 @@ async function assessFunctions(stub, code, authDetails, stateInjection) {
 							: //https://www.rensmart.com/Calculators/KWH-to-CO2 temporary
 							  a.energyWattHours * 0.00028307
 					),
-					logs: logs.popLogs(),
+					logs: stub.loggerExport ? stub.loggerExport.popLogs() : [],
 					codeSimiliarity: comparisonEngine.compareIntegration(code)
 				}
 			);
@@ -156,7 +163,7 @@ async function assessFunctions(stub, code, authDetails, stateInjection) {
 							: //https://www.rensmart.com/Calculators/KWH-to-CO2 temporary
 							  a.energyWattHours * 0.00028307
 					),
-					logs: logs.popLogs(),
+					logs: stub.loggerExport ? stub.loggerExport.popLogs() : [],
 					codeSimiliarity: comparisonEngine.compareIntegration(code)
 				}
 			);
