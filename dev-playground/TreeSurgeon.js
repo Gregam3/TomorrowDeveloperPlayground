@@ -8,9 +8,6 @@ const DEEP_NODE_TYPES = [
 	"FunctionDeclaration"
 ];
 
-//CallExpression
-//expression.callee.name
-
 const flattenAST = (nodes, funs) => {
 	let flatNodes = [];
 

@@ -200,6 +200,10 @@ let files = { all: {}, paths: [] };
 		file.forEach(f =>
 			fs.readFile(dir + f, { encoding: "utf-8" }, (fErr, data) => {
 				files.all[f] = data;
+				fs.readFile(dir + f, { encoding: "utf-8" }, (fErr, data) => {
+					files.all[f] = data;
+					files.paths.push(dir + f);
+				});
 				files.paths.push(dir + f);
 			})
 		)

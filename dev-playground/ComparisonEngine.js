@@ -19,7 +19,7 @@ const compareIntegration = integrationCode => {
 				(integration[fn] = TreeSurgeon.eliminateNodeDetails(
 					TreeSurgeon.eliminateLoggingNodes(
 						TreeSurgeon.flattenAST(funs[fn].body.body, funs)
-					)
+					).filter(node => !node.type.includes("Literal"))
 				))
 		);
 
@@ -84,20 +84,32 @@ const extractTopLevelFuns = code => {
 	return funs;
 };
 
-//Used for easy testing
+//Used for testing
 const getSimiliarity = (baseFunStr, compareFunStr) => {
-	const getFlatAST = code =>
-		TreeSurgeon.flattenAST(
-			parse(code).body.body.map(TreeSurgeon.eliminateNodeDetails)
-		);
+	const getFlatAST = code => {
+		const ast = parse(code);
+		return TreeSurgeon.eliminateLoggingNodes(
+			TreeSurgeon.flattenAST(ast[0].body.body, ast[1] ? { b: ast[1] } : {})
+		)
+			.map(TreeSurgeon.eliminateNodeDetails)
+			.filter(node => !node.type.includes("Literal"));
+	};
 
 	return compareFunASTs(getFlatAST(baseFunStr), getFlatAST(compareFunStr));
 };
 
-const DIFF_VALUES = { D: 10, N: 10, A: 5, E: 2.5 };
+// const DIFF_VALUES = { D: 10, N: 10, E: 2.5, A: 5 };
+// const DIFF_VALUES = { D: 10, N: 10, E: 5, A: 2.5 };
+// const DIFF_VALUES = { D: 5, N: 5, E: 2.5, A: 1 };
+const DIFF_VALUES = { D: 2, N: 2, E: 1, A: 0.1 };
+// const DIFF_VALUES = { D: 3, N: 3, E: 2, A: 1 };
+// const DIFF_VALUES = { D: 20, N: 20, E: 2.5, A: 1 };
+// const DIFF_VALUES = { D: 10, N: 10, E: 2.5, A: 2.5 };
+// const DIFF_VALUES = { D: 10, N: 10, E: 1, A: 1 };
+// const DIFF_VALUES = { D: 40, N: 40, E: 2.5, A: 1 };
 
 const compareFunASTs = (nodes, compareNodes) => {
-	//Array used to retrieve range to map
+	//Fetch match hiearchy for each node in nodes
 	let matches = [...Array(nodes.length).keys()].map(node => {
 		return {
 			node: nodes[node],
@@ -112,6 +124,8 @@ const compareFunASTs = (nodes, compareNodes) => {
 			})
 		};
 	});
+
+	console.log(matches[2].comparisons);
 
 	//Sort Comparison hiearchies inside of each node, ascending order.
 	let nodeMatches = matches.map(match => {
@@ -177,12 +191,15 @@ const compareMatch = (index, matches) => {
 	return { index: -1, compare: 0 };
 };
 
+const MAX_DIFF_VALUE = 5;
+
 const calculateSimiliarity = (node1, node2) => {
 	let diffValue = 0;
 
 	const diff = deepDiff(node1, node2);
+
 	if (diff) diff.forEach(d => (diffValue += DIFF_VALUES[d.kind]));
-	return diffValue > 5 ? 5 : diffValue;
+	return diffValue > MAX_DIFF_VALUE ? MAX_DIFF_VALUE : diffValue;
 };
 
 const countKeys = obj => {
