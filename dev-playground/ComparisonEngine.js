@@ -16,9 +16,9 @@ const compareIntegration = integrationCode => {
 		let integration = {};
 		Object.keys(funs).forEach(
 			fn =>
-				(integration[fn] = TreeSurgeon.eliminateNodeDetails(
-					TreeSurgeon.eliminateLoggingNodes(
-						TreeSurgeon.flattenAST(funs[fn].body.body, funs)
+				(integration[fn] = TreeSurgeon.eliminateLoggingNodes(
+					TreeSurgeon.flattenAST(funs[fn].body.body, funs).map(
+						TreeSurgeon.eliminateNodeDetails
 					)
 				))
 		);
@@ -39,6 +39,14 @@ const compareIntegration = integrationCode => {
 					//get Inverse value but use as a third of total value
 					compareFunASTs(currentIntegration[funName], integration[funName])) *
 				100;
+
+			console.log(
+				fileName,
+				funName,
+				similiarity,
+				integration[funName].length,
+				currentIntegration[funName].length
+			);
 
 			if (similiarity < bestMatches[funName].similiarity) {
 				bestMatches[funName] = {
@@ -84,17 +92,34 @@ const extractTopLevelFuns = code => {
 	return funs;
 };
 
-//Used for easy testing
+//Used for testing purposes
 const getSimiliarity = (baseFunStr, compareFunStr) => {
 	const getFlatAST = code =>
-		TreeSurgeon.flattenAST(
-			parse(code).body.body.map(TreeSurgeon.eliminateNodeDetails)
+		TreeSurgeon.eliminateLoggingNodes(
+			TreeSurgeon.flattenAST(
+				parse(code)[0].body.body,
+				extractTopLevelFuns(code)
+			).map(TreeSurgeon.eliminateNodeDetails)
 		);
+
+	// console.log(
+	// 	countKeys(getFlatAST(baseFunStr)),
+	// 	countKeys(getFlatAST(compareFunStr))
+	// );
+
+	// console.log(
+	// 	getFlatAST(baseFunStr).length,
+	// 	getFlatAST(compareFunStr).length
+	// );
 
 	return compareFunASTs(getFlatAST(baseFunStr), getFlatAST(compareFunStr));
 };
 
-const DIFF_VALUES = { D: 10, N: 10, A: 5, E: 2.5 };
+//Tune these values D and N should be kept as the same value
+const DIFF_VALUES = { D: 8, N: 8, E: 1, A: 0.2 };
+
+//Tune this value to change the weighting of node size difference
+const MODIFIER_EXPONENT = 1.1;
 
 const compareFunASTs = (nodes, compareNodes) => {
 	//Array used to retrieve range to map
@@ -135,12 +160,15 @@ const compareFunASTs = (nodes, compareNodes) => {
 		}
 	});
 
-	let modifier =
-		nodeMatches.filter(match => match.comparisons.length === 0).length * 0.5;
+	let modifier = Math.pow(
+		nodeMatches.filter(match => match.comparisons.length === 0).length,
+		MODIFIER_EXPONENT
+	);
 	//To use 1 as a base, cannot be set before incase filter yields 0
 	modifier++;
 
-	let similiarity = modifier > 1 ? 10 * modifier : 0;
+	//Sets a base level of disimilarity so modifier can be made use of if similarity is 0
+	let similiarity = modifier > 1 ? modifier - 1 : 0;
 
 	//Finally uses best matched nodes to complete comparison
 	nodeMatches
@@ -177,12 +205,18 @@ const compareMatch = (index, matches) => {
 	return { index: -1, compare: 0 };
 };
 
+const DIFF_SUM = Object.keys(DIFF_VALUES)
+	.map(k => DIFF_VALUES[k])
+	.reduce((l, r) => l + r);
+
+const MAX_DIFF_VALUE = 200 / DIFF_SUM;
+
 const calculateSimiliarity = (node1, node2) => {
 	let diffValue = 0;
 
 	const diff = deepDiff(node1, node2);
 	if (diff) diff.forEach(d => (diffValue += DIFF_VALUES[d.kind]));
-	return diffValue > 5 ? 5 : diffValue;
+	return diffValue;
 };
 
 const countKeys = obj => {
