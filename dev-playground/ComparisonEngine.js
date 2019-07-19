@@ -85,6 +85,8 @@ const parse = code =>
 const extractTopLevelFuns = code => {
 	let funs = {};
 
+	console.log(code);
+
 	parse(code)
 		.filter(node => node.type === "FunctionDeclaration")
 		.forEach(fnNode => (funs[fnNode.id.name] = fnNode));
@@ -102,15 +104,12 @@ const getSimiliarity = (baseFunStr, compareFunStr) => {
 			).map(TreeSurgeon.eliminateNodeDetails)
 		);
 
-	// console.log(
-	// 	countKeys(getFlatAST(baseFunStr)),
-	// 	countKeys(getFlatAST(compareFunStr))
-	// );
+	console.log(
+		countKeys(getFlatAST(baseFunStr)),
+		countKeys(getFlatAST(compareFunStr))
+	);
 
-	// console.log(
-	// 	getFlatAST(baseFunStr).length,
-	// 	getFlatAST(compareFunStr).length
-	// );
+	// console.log(getFlatAST(baseFunStr).length, getFlatAST(compareFunStr).length);
 
 	return compareFunASTs(getFlatAST(baseFunStr), getFlatAST(compareFunStr));
 };
@@ -152,6 +151,7 @@ const compareFunASTs = (nodes, compareNodes) => {
 	[...Array(nodeMatches.length).keys()].map(i => {
 		let compareResult = compareMatch(i, nodeMatches);
 
+		//TODO replace with inline call expression
 		while (compareResult.compare !== 0) {
 			if (compareResult.compare === 1) nodeMatches[i].comparisons.shift();
 			else nodeMatches[compareResult.index].comparisons.shift();
