@@ -19,72 +19,62 @@ export class IntegrationSelect extends Component {
 
 	render() {
 		return (
-			<div>
+			<div style={{ backgroundColor: "#1e1e1e", padding: 10 }}>
 				{this.viewIntegrationModal()}
-				<div className="panel panel-default integrations">
-					<div className="panel-header">
-						<label className="title">
-							<FontAwesomeIcon icon="code-branch" />
-							&nbsp;Integrations
-						</label>
-						<Dropdown style={{ float: "right" }}>
-							<Dropdown.Toggle variant="secondary">Select</Dropdown.Toggle>
-
-							<Dropdown.Menu>
-								{Object.keys(this.state.integrations.all).map(i => (
-									<Dropdown.Item
-										onClick={() => {
-											let integrations = this.state.integrations;
-											integrations.selected = i;
-											this.setState({ integrations });
-										}}
-									>
-										{i}
-									</Dropdown.Item>
-								))}
-							</Dropdown.Menu>
-						</Dropdown>
-					</div>
-					<div className="panel-body">
-						Currently selected:{" "}
-						<div style={{ color: "red", fontWeight: "bold" }}>
-							{this.state.integrations.selected
-								? this.state.integrations.selected
-								: "None"}
-						</div>
-						<Button
-							variant="secondary"
-							onClick={() =>
-								this.setCode(
-									this.state.integrations.all[this.state.integrations.selected]
-								)
-							}
-						>
-							Load{" "}
-						</Button>{" "}
-						&nbsp;
-						<Button
-							variant="secondary"
-							onClick={() => this.setState({ showIntegrationModal: true })}
-						>
-							{" "}
-							View{" "}
-						</Button>
-						&nbsp;
-						<Button
-							variant="secondary"
-							onClick={() => {
-								console.log(App);
-								this.setCode(INITIAL_CODE);
-							}}
-						>
-							Reset{" "}
-						</Button>
-						{/* <Button variant="secondary"
-                        onClick={() => window.open('https://github.com/tmrowco/tmrowapp-contrib')}>
-                        <FontAwesomeIcon icon={["fab", "github"]} size="lg" /> </Button> */}
-					</div>
+				<div className="col-xs-4">
+					<h4>
+						<FontAwesomeIcon icon="code-branch" />
+						&nbsp;Integrations{" "}
+					</h4>
 				</div>
+				<div className="col-xs-2">
+					<Dropdown>
+						<Dropdown.Toggle variant="secondary">Load</Dropdown.Toggle>
+
+						<Dropdown.Menu>
+							{Object.keys(this.state.integrations.all).map(i => (
+								<Dropdown.Item
+									onClick={() => {
+										let integrations = this.state.integrations;
+										integrations.selected = i;
+										this.setState({ integrations });
+									}}
+								>
+									{i}
+								</Dropdown.Item>
+							))}
+						</Dropdown.Menu>
+					</Dropdown>
+				</div>
+				<div className="col-xs-2">
+					<Dropdown>
+						<Dropdown.Toggle variant="secondary">View</Dropdown.Toggle>
+
+						<Dropdown.Menu>
+							{Object.keys(this.state.integrations.all).map(i => (
+								<Dropdown.Item
+									onClick={() => {
+										let integrations = this.state.integrations;
+										integrations.selected = i;
+										this.setState({ integrations });
+									}}
+								>
+									{i}
+								</Dropdown.Item>
+							))}
+						</Dropdown.Menu>
+					</Dropdown>
+				</div>
+
+				<Button
+					variant="secondary"
+					onClick={() => {
+						console.log(App);
+						this.setCode(INITIAL_CODE);
+					}}
+				>
+					Reset
+				</Button>
 			</div>
 		);
 	}

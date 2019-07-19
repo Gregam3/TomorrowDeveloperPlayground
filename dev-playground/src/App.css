@@ -4,6 +4,10 @@
 	color: white;
 }
 
+* {
+	color: white;
+}
+
 .vertical-split {
 	width: 50%;
 	position: fixed;

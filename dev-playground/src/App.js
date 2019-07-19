@@ -135,13 +135,21 @@ class App extends Component {
 
 	render() {
 		return (
-			<div className="root">
+			<div>
 				<div className="vertical-split left">
+					{this.state.integrations && (
+						<IntegrationSelect
+							integrations={
+								this.state.integrations ? this.state.integrations.all : {}
+							}
+							setCode={this.setCode}
+						/>
+					)}
 					{this.state.code === null ? (
 						<h1>Fetching Code</h1>
 					) : (
 						<MonacoEditor
-							height={window.innerHeight * 1}
+							height={window.innerHeight * 0.95}
 							width={window.innerWidth * 0.5}
 							language="javascript"
 							theme="vs-dark"
@@ -151,9 +159,16 @@ class App extends Component {
 						/>
 					)}
 				</div>
-				<div className="vertical-split right" style={{ paddingTop: 30 }}>
-					<div className="horizontal-split top">Top</div>
-					<div className="horizontal-split bottom">Bottom</div>
+				<div className="vertical-split right root" style={{ paddingTop: 30 }}>
+					<div className="horizontal-split top">
+						<h1>Top</h1>
+						<div className="col-sm-6">
+							<LogPanel logs={this.state.logs} />
+						</div>
+					</div>
+					<div className="horizontal-split bottom">
+						<h1>Bottom</h1>
+					</div>
 				</div>
 				<ToastContainer style={{ width: "40%", fontSize: "25pt" }} />
 			</div>
