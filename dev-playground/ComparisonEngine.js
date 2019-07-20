@@ -40,14 +40,6 @@ const compareIntegration = integrationCode => {
 					compareFunASTs(currentIntegration[funName], integration[funName])) *
 				100;
 
-			console.log(
-				fileName,
-				funName,
-				similiarity,
-				integration[funName].length,
-				currentIntegration[funName].length
-			);
-
 			if (similiarity < bestMatches[funName].similiarity) {
 				bestMatches[funName] = {
 					name: fileName,

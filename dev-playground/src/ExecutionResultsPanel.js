@@ -10,7 +10,7 @@ import {
 	YAxis,
 	LineChart
 } from "react-timeseries-charts";
-import Gauge from "react-svg-gauge";
+import Gauge from "react-radial-gauge";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const DISPLAY_TYPE = {
@@ -279,7 +279,7 @@ export class ExecutionResults extends Component {
 			<div>
 				<div className="title">
 					<h2>
-						Similiarity: <b>{funName}</b>
+						Similiarity: <code>{funName}</code>
 					</h2>
 				</div>
 				<div>
@@ -298,14 +298,13 @@ export class ExecutionResults extends Component {
 					</p>
 					<div className="gauge">
 						<Gauge
-							value={frmtGaugeVal(
+							currentValue={frmtGaugeVal(
 								this.state.results.codeSimiliarity[funName].similiarity
 							)}
-							color="#4e7899"
-							width={200}
-							height={150}
-							label={funName}
-							style={{ color: "white" }}
+							needleColor="red"
+							needleWidth="12"
+							needleSharp="true"
+							progressColor="#3d8cd0"
 						/>
 					</div>
 					<pre>{this.state.results.codeSimiliarity[funName].body}</pre>
