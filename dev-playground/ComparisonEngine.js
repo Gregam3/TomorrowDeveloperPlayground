@@ -118,7 +118,7 @@ const getSimiliarity = (baseFunStr, compareFunStr) => {
 const DIFF_VALUES = { D: 8, N: 8, E: 1, A: 0.2 };
 
 //Tune this value to change the weighting of node size difference
-const MODIFIER_EXPONENT = 1.1;
+const MODIFIER_EXPONENT = 1.2;
 
 const compareFunASTs = (nodes, compareNodes) => {
 	//Array used to retrieve range to map

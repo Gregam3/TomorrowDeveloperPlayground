@@ -32,15 +32,13 @@ export class IntegrationSelect extends Component {
 						<Dropdown.Toggle variant="secondary">Load</Dropdown.Toggle>
 
 						<Dropdown.Menu>
-							{Object.keys(this.state.integrations.all).map(i => (
+							{Object.keys(this.state.integrations.all).map(selected => (
 								<Dropdown.Item
-									onClick={() => {
-										let integrations = this.state.integrations;
-										integrations.selected = i;
-										this.setState({ integrations });
-									}}
+									onClick={() =>
+										this.setCode(this.state.integrations.all[selected])
+									}
 								>
-									{i}
+									{selected}
 								</Dropdown.Item>
 							))}
 						</Dropdown.Menu>
@@ -56,7 +54,7 @@ export class IntegrationSelect extends Component {
 									onClick={() => {
 										let integrations = this.state.integrations;
 										integrations.selected = i;
-										this.setState({ integrations });
+										this.setState({ integrations, showIntegrationModal: true });
 									}}
 								>
 									{i}
@@ -94,6 +92,7 @@ export class IntegrationSelect extends Component {
 				</Modal.Body>
 				<Modal.Footer>
 					<Button
+						variant="secondary"
 						onClick={() => this.setState({ showIntegrationModal: false })}
 					>
 						{" "}

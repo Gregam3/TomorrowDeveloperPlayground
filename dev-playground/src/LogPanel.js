@@ -24,16 +24,14 @@ export class LogPanel extends Component {
 			<div className="log">
 				<h3 className="title">
 					<FontAwesomeIcon icon="terminal" />
-					&nbsp;Execution Logs
+					&nbsp; Logs
 				</h3>
 				<div
 					style={{
 						backgroundColor: "black",
-						position: "absolute",
-						height: "67%",
-						width: "95%",
 						fontFamily: "Ubuntu",
 						color: "white",
+						height: "150px",
 						fontWeight: "bold",
 						overflowX: "scroll",
 						fontSize: 12

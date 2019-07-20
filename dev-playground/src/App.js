@@ -160,16 +160,25 @@ class App extends Component {
 					)}
 				</div>
 				<div className="vertical-split right root" style={{ paddingTop: 30 }}>
-					<div className="horizontal-split top">
-						<h1>Top</h1>
-						<div className="col-sm-6">
-							<LogPanel logs={this.state.logs} />
-						</div>
+					<div className="col-sm-4">
+						<LogPanel logs={this.state.logs} />
 					</div>
-					<div className="horizontal-split bottom">
-						<h1>Bottom</h1>
+					<div className="col-sm-3">{this.authForm()}</div>
+					<div className="col-sm-5">{this.environmentPanel()}</div>
+					<div className="col-xs-12">
+						<ExecutionResults
+							results={this.state.results}
+							interpretJS={this.interpretJS}
+							integrations={this.state.integrations}
+							authDetails={{
+								username: this.state.username,
+								password: this.state.password
+							}}
+							setStateInjection={this.setStateInjection}
+						/>
 					</div>
 				</div>
+
 				<ToastContainer style={{ width: "40%", fontSize: "25pt" }} />
 			</div>
 		);
@@ -212,14 +221,14 @@ class App extends Component {
 	//TODO move to component
 	authForm() {
 		return (
-			<div className="auth-input panel panel-default">
-				<div className="panel-header">
+			<div>
+				<div>
 					<h3 style={{ marginLeft: "10px" }}>
 						<FontAwesomeIcon icon="lock" />
-						&nbsp;Auth Input{" "}
+						&nbsp;Auth{" "}
 					</h3>
 				</div>
-				<div className="panel-body">
+				<div>
 					<Form style={{ fontSize: 14 }}>
 						<Form.Group>
 							<Form.Label>Username</Form.Label>
@@ -244,20 +253,17 @@ class App extends Component {
 
 	environmentPanel() {
 		return (
-			<div
-				className="panel panel-default env-input"
-				style={{ overflowY: "scroll" }}
-			>
-				<div className="panel-header">
-					<label className="title">
+			<div>
+				<div>
+					<h4 className="title">
 						<FontAwesomeIcon icon="tree" />
-						&nbsp; Environment Variables &nbsp;
+						&nbsp; Env Variables &nbsp;
 						<Button onClick={() => this.addEnvInput()} variant="secondary">
 							<FontAwesomeIcon icon="plus" />
 						</Button>
-					</label>
+					</h4>
 				</div>
-				<div className="panel-body">
+				<div style={{ overflowY: "scroll", height: "150px" }}>
 					{this.state.envRefList.map(e => (
 						<Form>
 							<Form.Group className="col-xs-6">
