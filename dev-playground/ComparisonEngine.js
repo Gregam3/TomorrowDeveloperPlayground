@@ -77,6 +77,8 @@ const parse = code =>
 const extractTopLevelFuns = code => {
 	let funs = {};
 
+	console.log(code);
+
 	parse(code)
 		.filter(node => node.type === "FunctionDeclaration")
 		.forEach(fnNode => (funs[fnNode.id.name] = fnNode));
@@ -84,6 +86,7 @@ const extractTopLevelFuns = code => {
 	return funs;
 };
 
+<<<<<<< HEAD
 //Used for testing
 const getSimiliarity = (baseFunStr, compareFunStr) => {
 	const getFlatAST = code => {
@@ -94,10 +97,29 @@ const getSimiliarity = (baseFunStr, compareFunStr) => {
 			.map(TreeSurgeon.eliminateNodeDetails)
 			.filter(node => !node.type.includes("Literal"));
 	};
+=======
+//Used for testing purposes
+const getSimiliarity = (baseFunStr, compareFunStr) => {
+	const getFlatAST = code =>
+		TreeSurgeon.eliminateLoggingNodes(
+			TreeSurgeon.flattenAST(
+				parse(code)[0].body.body,
+				extractTopLevelFuns(code)
+			).map(TreeSurgeon.eliminateNodeDetails)
+		);
+>>>>>>> beautify-ui
+
+	console.log(
+		countKeys(getFlatAST(baseFunStr)),
+		countKeys(getFlatAST(compareFunStr))
+	);
+
+	// console.log(getFlatAST(baseFunStr).length, getFlatAST(compareFunStr).length);
 
 	return compareFunASTs(getFlatAST(baseFunStr), getFlatAST(compareFunStr));
 };
 
+<<<<<<< HEAD
 // const DIFF_VALUES = { D: 10, N: 10, E: 2.5, A: 5 };
 // const DIFF_VALUES = { D: 10, N: 10, E: 5, A: 2.5 };
 // const DIFF_VALUES = { D: 5, N: 5, E: 2.5, A: 1 };
@@ -107,6 +129,13 @@ const DIFF_VALUES = { D: 2, N: 2, E: 1, A: 0.1 };
 // const DIFF_VALUES = { D: 10, N: 10, E: 2.5, A: 2.5 };
 // const DIFF_VALUES = { D: 10, N: 10, E: 1, A: 1 };
 // const DIFF_VALUES = { D: 40, N: 40, E: 2.5, A: 1 };
+=======
+//Tune these values D and N should be kept as the same value
+const DIFF_VALUES = { D: 8, N: 8, E: 1, A: 0.2 };
+
+//Tune this value to change the weighting of node size difference
+const MODIFIER_EXPONENT = 1.2;
+>>>>>>> beautify-ui
 
 const compareFunASTs = (nodes, compareNodes) => {
 	//Fetch match hiearchy for each node in nodes
@@ -141,6 +170,7 @@ const compareFunASTs = (nodes, compareNodes) => {
 	[...Array(nodeMatches.length).keys()].map(i => {
 		let compareResult = compareMatch(i, nodeMatches);
 
+		//TODO replace with inline call expression
 		while (compareResult.compare !== 0) {
 			if (compareResult.compare === 1) nodeMatches[i].comparisons.shift();
 			else nodeMatches[compareResult.index].comparisons.shift();
@@ -149,12 +179,15 @@ const compareFunASTs = (nodes, compareNodes) => {
 		}
 	});
 
-	let modifier =
-		nodeMatches.filter(match => match.comparisons.length === 0).length * 0.5;
+	let modifier = Math.pow(
+		nodeMatches.filter(match => match.comparisons.length === 0).length,
+		MODIFIER_EXPONENT
+	);
 	//To use 1 as a base, cannot be set before incase filter yields 0
 	modifier++;
 
-	let similiarity = modifier > 1 ? 10 * modifier : 0;
+	//Sets a base level of disimilarity so modifier can be made use of if similarity is 0
+	let similiarity = modifier > 1 ? modifier - 1 : 0;
 
 	//Finally uses best matched nodes to complete comparison
 	nodeMatches
@@ -191,7 +224,15 @@ const compareMatch = (index, matches) => {
 	return { index: -1, compare: 0 };
 };
 
+<<<<<<< HEAD
 const MAX_DIFF_VALUE = 5;
+=======
+const DIFF_SUM = Object.keys(DIFF_VALUES)
+	.map(k => DIFF_VALUES[k])
+	.reduce((l, r) => l + r);
+
+const MAX_DIFF_VALUE = 200 / DIFF_SUM;
+>>>>>>> beautify-ui
 
 const calculateSimiliarity = (node1, node2) => {
 	let diffValue = 0;
@@ -199,7 +240,11 @@ const calculateSimiliarity = (node1, node2) => {
 	const diff = deepDiff(node1, node2);
 
 	if (diff) diff.forEach(d => (diffValue += DIFF_VALUES[d.kind]));
+<<<<<<< HEAD
 	return diffValue > MAX_DIFF_VALUE ? MAX_DIFF_VALUE : diffValue;
+=======
+	return diffValue;
+>>>>>>> beautify-ui
 };
 
 const countKeys = obj => {

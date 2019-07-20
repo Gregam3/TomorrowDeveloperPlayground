@@ -10,7 +10,7 @@ import {
 	YAxis,
 	LineChart
 } from "react-timeseries-charts";
-import Gauge from "react-svg-gauge";
+import Gauge from "react-radial-gauge";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const DISPLAY_TYPE = {
@@ -49,8 +49,8 @@ export class ExecutionResults extends Component {
 		return (
 			<div>
 				{this.configureRunModal()}
-				<div className="test-results panel panel-default">
-					<div className="panel-header" style={{ marginLeft: "10px" }}>
+				<div>
+					<div style={{ marginLeft: "10px" }}>
 						<h3>
 							<FontAwesomeIcon icon="poll" />
 							&nbsp; Results{" "}
@@ -75,7 +75,7 @@ export class ExecutionResults extends Component {
 							? this.viewIntegrationModal()
 							: ""}
 					</div>
-					<div className="panel-body">
+					<div>
 						{this.state.integrations && this.integrationPanel()}
 						{this.state.results === "oauth" ? (
 							<h1>Waiting for OAuth</h1>
@@ -129,14 +129,22 @@ export class ExecutionResults extends Component {
 										</Nav.Item>
 									</Nav>
 								)}
-								{this.state.resultsDisplay === DISPLAY_TYPE.JSON &&
-									this.jsonResults()}
-								{this.state.resultsDisplay === DISPLAY_TYPE.GRAPH &&
-									this.graphResults()}
-								{this.state.resultsDisplay === DISPLAY_TYPE.AGGREGATE &&
-									this.aggregateResults()}
-								{this.state.resultsDisplay === DISPLAY_TYPE.CODE_SIMILIARITY &&
-									this.codeSimiliarityResults()}
+								<div
+									style={{
+										height: window.innerHeight * 0.6,
+										overflowY: "scroll"
+									}}
+								>
+									{this.state.resultsDisplay === DISPLAY_TYPE.JSON &&
+										this.jsonResults()}
+									{this.state.resultsDisplay === DISPLAY_TYPE.GRAPH &&
+										this.graphResults()}
+									{this.state.resultsDisplay === DISPLAY_TYPE.AGGREGATE &&
+										this.aggregateResults()}
+									{this.state.resultsDisplay ===
+										DISPLAY_TYPE.CODE_SIMILIARITY &&
+										this.codeSimiliarityResults()}
+								</div>
 							</div>
 						)}
 					</div>
@@ -213,11 +221,11 @@ export class ExecutionResults extends Component {
 	aggregateResults() {
 		return (
 			<div>
-				<div className="panel panel-default">
-					<div className="panel-header">
+				<div>
+					<div>
 						<h1 className="title">Activities</h1>
 					</div>
-					<div className="panel-body">
+					<div>
 						<p>
 							Total watt hours: {this.state.results.activities.text.wattHours}
 						</p>
@@ -232,11 +240,11 @@ export class ExecutionResults extends Component {
 						</p>
 					</div>
 				</div>
-				<div className="panel panel-default">
-					<div className="panel-header">
+				<div>
+					<div>
 						<h1 className="title">Activities with Carbon model</h1>
 					</div>
-					<div className="panel-body">
+					<div>
 						<p>
 							Total carbon emissions:{" "}
 							{sumCarbon(this.state.results.modelledActivities)} kg
@@ -268,13 +276,13 @@ export class ExecutionResults extends Component {
 
 		const frmtGaugeVal = v => (v > 100 ? 0 : (100 - v).toFixed());
 		const makePanel = funName => (
-			<div className="panel panel-default">
-				<div className="panel-header title">
+			<div>
+				<div className="title">
 					<h2>
-						Similiarity: <b>{funName}</b>
+						Similiarity: <code>{funName}</code>
 					</h2>
 				</div>
-				<div className="panel panel-body">
+				<div>
 					<p>
 						Most similiar integration:&nbsp;
 						<b>{this.state.results.codeSimiliarity[funName].name}</b>.
@@ -290,13 +298,13 @@ export class ExecutionResults extends Component {
 					</p>
 					<div className="gauge">
 						<Gauge
-							value={frmtGaugeVal(
+							currentValue={frmtGaugeVal(
 								this.state.results.codeSimiliarity[funName].similiarity
 							)}
-							color="#4e7899"
-							width={200}
-							height={150}
-							label={funName}
+							needleColor="red"
+							needleWidth="12"
+							needleSharp="true"
+							progressColor="#3d8cd0"
 						/>
 					</div>
 					<pre>{this.state.results.codeSimiliarity[funName].body}</pre>
@@ -305,7 +313,7 @@ export class ExecutionResults extends Component {
 		);
 
 		return (
-			<div>
+			<div style={{ overflow: "scroll" }}>
 				{makePanel("connect")}
 				{makePanel("collect")}
 				{makePanel("disconnect")}

@@ -21,29 +21,23 @@ export class LogPanel extends Component {
 
 	render() {
 		return (
-			<div className="panel panel-default log">
-				<div className="panel-header">
-					<h3 className="title">
-						<FontAwesomeIcon icon="terminal" />
-						&nbsp;Execution Logs
-					</h3>
-				</div>
-				<div className="panel-body">
-					<div
-						style={{
-							backgroundColor: "black",
-							position: "absolute",
-							height: "67%",
-							width: "95%",
-							fontFamily: "Ubuntu",
-							color: "white",
-							fontWeight: "bold",
-							overflowX: "scroll",
-							fontSize: 12
-						}}
-					>
-						<div style={{ margin: 10, marginBottom: 0 }}>{this.state.logs}</div>
-					</div>
+			<div className="log">
+				<h3 className="title">
+					<FontAwesomeIcon icon="terminal" />
+					&nbsp; Logs
+				</h3>
+				<div
+					style={{
+						backgroundColor: "black",
+						fontFamily: "Ubuntu",
+						color: "white",
+						height: "150px",
+						fontWeight: "bold",
+						overflowX: "scroll",
+						fontSize: 12
+					}}
+				>
+					<div style={{ margin: 10, marginBottom: 0 }}>{this.state.logs}</div>
 				</div>
 			</div>
 		);

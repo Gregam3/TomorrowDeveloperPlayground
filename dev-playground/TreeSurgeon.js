@@ -151,7 +151,8 @@ const eliminateLoggingNodes = nodes => {
 		node.expression &&
 		node.expression.callee &&
 		node.expression.callee.name &&
-		node.expression.callee.name.startsWith("log");
+		node.expression.callee.name.startsWith("log") &&
+		!node.expression.callee.name.endsWith("In");
 
 	return nodes.filter(
 		n =>

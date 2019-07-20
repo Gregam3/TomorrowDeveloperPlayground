@@ -3,19 +3,43 @@ const engine = require("../ComparisonEngine");
 const fs = require("fs");
 
 describe("\nIsolated  Test", () => {
-	context("Logless code vs logging code", () => {
-		let a = fs.readFileSync(
-			"/home/grg/Projects/TomorrowDeveloperPlayground/dev-playground/moss/a.js",
-			"utf-8"
+	console.log("Greater than 1");
+	let a, b;
+
+	for (let i = 0; i < 4; i++) {
+		a = fs.readFileSync(
+			"/home/grg/Projects/TomorrowDeveloperPlayground/dev-playground/comparison-tests/" +
+				i +
+				"a.js",
+			"utf8"
 		);
 
-		let b = fs.readFileSync(
-			"/home/grg/Projects/TomorrowDeveloperPlayground/dev-playground/moss/b.js",
-			"utf-8"
+		b = fs.readFileSync(
+			"/home/grg/Projects/TomorrowDeveloperPlayground/dev-playground/comparison-tests/" +
+				i +
+				"b.js",
+			"utf8"
 		);
 
-		const start = new Date().getTime();
-		console.log(engine.getSimiliarity(a, b));
-		console.log(new Date().getTime() - start + "ms");
-	});
+		console.log(engine.getSimiliarity(a, b) + engine.getSimiliarity(b, a));
+	}
+
+	console.log("\nBetween 1 and 0");
+	for (let i = 0; i < 3; i++) {
+		a = fs.readFileSync(
+			"/home/grg/Projects/TomorrowDeveloperPlayground/dev-playground/comparison-tests/" +
+				i +
+				"c.js",
+			"utf8"
+		);
+
+		b = fs.readFileSync(
+			"/home/grg/Projects/TomorrowDeveloperPlayground/dev-playground/comparison-tests/" +
+				i +
+				"d.js",
+			"utf8"
+		);
+
+		console.log(engine.getSimiliarity(a, b) + engine.getSimiliarity(b, a));
+	}
 });
