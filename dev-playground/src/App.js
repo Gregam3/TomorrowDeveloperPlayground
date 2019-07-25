@@ -112,7 +112,10 @@ class App extends Component {
 		);
 		socket.on("openUrl", url => window.open(url));
 		socket.on("setResults", results => {
-			toast.success("Results Updated", { autoClose: 2000 });
+			toast.success("Results Updated", {
+				autoClose: 2000,
+				position: toast.POSITION.TOP_LEFT
+			});
 			console.log(results);
 			results.activities = processActivities(results.collect.activities);
 			this.setState({
@@ -127,7 +130,10 @@ class App extends Component {
 			toast.error(
 				Object.keys(error).length > 0
 					? JSON.stringify(error)
-					: "An Error occurred, but no error message could be retrieved"
+					: "An Error occurred, but no error message could be retrieved",
+				{
+					position: toast.POSITION.TOP_LEFT
+				}
 			);
 		});
 		socket.on("setLogs", logs => console.log(logs));
